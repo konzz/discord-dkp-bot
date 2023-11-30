@@ -72,7 +72,7 @@ module.exports = class DKPManager {
     }
 
     async getAll(guild) {
-        return this.dbClient.db("DKP").collection(`DKP`).find({guild}).toArray();
+        return this.dbClient.db("DKP").collection(`DKP`).find({guild}).project({ _id: 0 }).toArray();
     }
 
     async addCharacter(guild, player, character) {
@@ -85,7 +85,6 @@ module.exports = class DKPManager {
             { player, guild, characters: { $nin: [character] } },
             { $push: { characters: character } }
         );
-        
     }
 
     async saveGuildOptions(guild, options) {

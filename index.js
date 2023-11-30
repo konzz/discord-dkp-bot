@@ -37,6 +37,11 @@ for (const file of commandFiles) {
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;
 
+	if(!interaction.guild) {
+		await interaction.reply(`This command can only be used in a discord server`);
+		return;
+	}
+
 	const command = interaction.client.commands.get(interaction.commandName);
 
 	if (!command) {
@@ -47,7 +52,7 @@ client.on(Events.InteractionCreate, async interaction => {
 	try {
 		if(command.restricted) {
 			const guildConfig = await dkpManager.getGuildOptions(interaction.guild.id);
-			if (!interaction.member.roles.cache.has(guildConfig.adminRole)) {
+			if (!guildConfig || !interaction.member.roles.cache.has(guildConfig.adminRole)) {
 				interaction.reply(`You don't have the permission to use this command`);
 				return;
 			}
@@ -64,33 +69,21 @@ client.on(Events.InteractionCreate, async interaction => {
 });
 
 client.once(Events.ClientReady, async c => {
-	
-	console.log(`Ready! Logged in as ${c.user.tag}`);
+
 	try {
-		//process.argv[2]
-		if(true) {
-			console.log(`Started refreshing ${commands.length} application (/) commands.`);
-
-			// The put method is used to fully refresh all commands in the guild with the current set
-			const rest = new REST().setToken(token);
-			await rest.put(Routes.applicationCommands(clientId), { body: commands })
-			/*c.guilds.cache.forEach(async guild => {
-				console.log(`Started refreshing ${commands.length} application (/) commands for guild: ${guild.name} (${guild.id}).`);
-
-				// The put method is used to fully refresh all commands in the guild with the current set
-				await rest.put(Routes.applicationGuildCommands(clientId, guild.id), { body: [] })
-				const data = await rest.put(
-					Routes.applicationGuildCommands(clientId, guild.id),
-					{ body: commands },
-				);
-
-				console.log(`Successfully reloaded ${data.length} application (/) commands for guild: ${guild.name} (${guild.id}).`);
-			});*/
-		}
+		console.log(`Started refreshing ${commands.length} application (/) commands.`);
+	
+		// The put method is used to fully refresh all commands in the guild with the current set
+		const rest = new REST().setToken(token);
+		await rest.put(Routes.applicationCommands(clientId), { body: commands })
+		console.log(`Successfully reloaded application (/) commands.`);
+		
 	} catch (error) {
 		// And of course, make sure you catch and log any errors!
 		console.error(error);
 	}
+
+	console.log(`Ready! Logged in as ${c.user.tag}`);
 });
 
 client.login(token);

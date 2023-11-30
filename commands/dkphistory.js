@@ -9,6 +9,10 @@ module.exports = {
 		const guild = interaction.guild.id;
         const user = interaction.options.getUser('player') || interaction.user;
         const player = await manager.getPlayer(guild, user.id);
+		if (!player) {
+			await interaction.reply(`${user.username} has no DKP history`);
+			return;
+		}
 		const reply = player.log.map(e => `- ${new Date(e.date).toDateString()}:  **${e.dkp}** *${e.comment}*`);
 		await interaction.reply(reply.join('\n'));
 	},

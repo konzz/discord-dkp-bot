@@ -4,7 +4,7 @@
   "description": "Discord Bot To Handle DKPs",
   "main": "index.js",
   "scripts": {},
-  "author": "",
+  "author": "Alberto Casado Torres",
   "license": "ISC",
   "dependencies": {
     "discord.js": "^14.14.1",

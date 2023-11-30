@@ -67,13 +67,14 @@ client.once(Events.ClientReady, async c => {
 	
 	console.log(`Ready! Logged in as ${c.user.tag}`);
 	try {
-		if(process.argv[2]) {
+		//process.argv[2]
+		if(true) {
 			console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
 			// The put method is used to fully refresh all commands in the guild with the current set
 			const rest = new REST().setToken(token);
-			await rest.put(Routes.applicationCommands(clientId), { body: [] })
-			c.guilds.cache.forEach(async guild => {
+			await rest.put(Routes.applicationCommands(clientId), { body: commands })
+			/*c.guilds.cache.forEach(async guild => {
 				console.log(`Started refreshing ${commands.length} application (/) commands for guild: ${guild.name} (${guild.id}).`);
 
 				// The put method is used to fully refresh all commands in the guild with the current set
@@ -84,7 +85,7 @@ client.once(Events.ClientReady, async c => {
 				);
 
 				console.log(`Successfully reloaded ${data.length} application (/) commands for guild: ${guild.name} (${guild.id}).`);
-			});
+			});*/
 		}
 	} catch (error) {
 		// And of course, make sure you catch and log any errors!

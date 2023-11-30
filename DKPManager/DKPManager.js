@@ -5,13 +5,13 @@ module.exports = class DKPManager {
 
     async addDKP(guild, player, dkp, comment, raid = false) {
         return this.dbClient.db("DKP").collection(`DKP`).findOneAndUpdate(
-            { player: player, guild: guild },
+            { player, guild },
             {
                 $inc: { current: dkp, assistance: raid ? 1 : 0 },
                 $push: {
                     log: {
                         dkp: dkp,
-                        comment: comment,
+                        comment,
                         date: new Date().getTime(),
                         raid,
                     }
@@ -23,13 +23,13 @@ module.exports = class DKPManager {
 
     async removeDKP(guild, player, dkp, comment, loot = false) {
         return this.dbClient.db("DKP").collection(`DKP`).findOneAndUpdate(
-            { player: player, guild: guild },
+            { player, guild },
             {
                 $inc: { current: -dkp },
                 $push: {
                     log: {
                         dkp: -dkp,
-                        comment: comment,
+                        comment,
                         date: new Date().getTime(),
                         loot,
                     }
@@ -47,13 +47,13 @@ module.exports = class DKPManager {
         }
         
         return this.dbClient.db("DKP").collection(`DKP`).findOneAndUpdate(
-            { characters: character, guild: guild },
+            { characters: character, guild },
             {
                 $inc: { current: dkp, assistance: raid ? 1 : 0 },
                 $push: {
                     log: {
                         dkp: dkp,
-                        comment: comment,
+                        comment,
                         date: new Date().getTime(),
                         raid,
                     }
@@ -71,6 +71,10 @@ module.exports = class DKPManager {
         return this.dbClient.db("DKP").collection(`DKP`).find({guild}).project({ player: 1, current: 1, assistance: 1, _id: 0 }).toArray();
     }
 
+    async getAll(guild) {
+        return this.dbClient.db("DKP").collection(`DKP`).find({guild}).toArray();
+    }
+
     async addCharacter(guild, player, character) {
         const alreadyRegistered = await this.dbClient.db("DKP").collection(`DKP`).findOne({characters: character, guild});
         if (alreadyRegistered) {
@@ -78,7 +82,7 @@ module.exports = class DKPManager {
         }
 
         return this.dbClient.db("DKP").collection(`DKP`).findOneAndUpdate(
-            { player: player, guild, characters: { $nin: [character] } },
+            { player, guild, characters: { $nin: [character] } },
             { $push: { characters: character } }
         );
         

@@ -14,7 +14,7 @@ module.exports = {
             const squares = Math.floor(percentage / 10);
             const player = await interaction.guild.members.fetch(e.player);
             const color = percentage > 80 ? ':green_square:' : percentage > 50 ? ':blue_square:' : ':red_square:';
-            return `- ${player.nickname || player.user.username}: ${color.repeat(squares)} ${e.assistance}`;
+            return `- ${player.nickname || player.user.globalName}: ${color.repeat(squares)} ${e.assistance}`;
         }));
 		await interaction.reply(reply.join('\n'));
 	},

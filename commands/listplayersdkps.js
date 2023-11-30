@@ -10,7 +10,7 @@ module.exports = {
         list = list.sort((a, b) => b.current - a.current);
         const reply = await Promise.all(list.map(async e => {
             const player = await interaction.guild.members.fetch(e.player);
-            return `${player.nickname || player.user.username}: ${e.current}`;
+            return `${player.nickname || player.user.globalName}: ${e.current}`;
         }));
 		await interaction.reply(reply.join('\n'));
 	},

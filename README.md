@@ -15,7 +15,7 @@ A Discord bot for managing DKP (Raid Points) with additional slash commands for 
 - **Parse logs:** Input EQ /who logs to automatically add DKPs to all members participating in a raid.
 
 ## Invite
-[INvite me to your discord!](https://discord.com/api/oauth2/authorize?client_id=1176561376282554439&permissions=551903423488&scope=applications.commands+bot)
+[Invite me to your discord!](https://discord.com/api/oauth2/authorize?client_id=1176561376282554439&permissions=551903423488&scope=applications.commands+bot)
 
 ## Commands
 
@@ -46,4 +46,7 @@ Parse DKP data from an EQ log (text) like:
 
 ### 7. Register Character
 Associates a discord guild member with a character in the logs
+
+### 7. Backup
+Generates a downloable file with all your guild data in JSON format.
 

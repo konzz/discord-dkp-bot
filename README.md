@@ -47,6 +47,9 @@ Parse DKP data from an EQ log (text) like:
 ### 7. Register Character
 Associates a discord guild member with a character in the logs
 
-### 7. Backup
+### 8. Backup
 Generates a downloable file with all your guild data in JSON format.
+
+### 9. Set admin role
+Sets the role that can add / remove DKPs only usable by discord admin
 

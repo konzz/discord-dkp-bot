@@ -1,19 +1,24 @@
+const { deserialize } = require('mongodb');
 const client = require('../db.js');
 const DKPManager = require('./DKPManager.js');
 describe('DKPManager', () => {
+    let playersCollection;
+    let raidsCollection;
+    let optionsCollection;
 
-    let collection;
     const guild = 'The butchers';
     beforeAll(async () => {
         process.env.MONGO_URL = 'mongodb://localhost:27017';
         await client.connect();
-        collection = client.db("DKP").collection(`DKP`);
-
+        playersCollection = client.db('DKP').collection(`players`);
+        raidsCollection = client.db('DKP').collection(`raids`);
+        optionsCollection = client.db('DKP').collection(`options`);
     });
 
     beforeEach(async () => {
-        await collection.deleteMany({});
-        await client.db("DKP").collection(`GuildOptions`).deleteMany({});
+        await playersCollection.deleteMany({});
+        await raidsCollection.deleteMany({});
+        await optionsCollection.deleteMany({});
     });
 
     afterAll(async () => {
@@ -26,14 +31,13 @@ describe('DKPManager', () => {
             const manager = new DKPManager(client);
             const player = 'player';
             const dkp = 11;
-            
-            
+
             // Act
-           await  manager.addDKP(guild, player, dkp);
+            await manager.addDKP(guild, player, dkp);
             // Assert
-           const result = await collection.findOne({player: player});
-           expect(result.current).toBe(dkp);
-           expect(result.guild).toBe(guild);
+            const result = await playersCollection.findOne({ player: player });
+            expect(result.current).toBe(dkp);
+            expect(result.guild).toBe(guild);
         });
 
         it('should keep a log of the DKP changes with date and comment', async () => {
@@ -46,7 +50,7 @@ describe('DKPManager', () => {
             // Act
             await manager.addDKP(guild, player, dkp, comment);
             // Assert
-            const result = await collection.findOne({player: player});
+            const result = await playersCollection.findOne({ player: player });
             expect(result.current).toBe(dkp);
             const log = result.log[0];
             expect(log.dkp).toBe(dkp);
@@ -62,11 +66,11 @@ describe('DKPManager', () => {
             const manager = new DKPManager(client);
             const player = 'player';
             const dkp = 8;
-            await collection.insertOne({player, current: dkp, guild});
+            await playersCollection.insertOne({ player, current: dkp, guild });
             // Act
             await manager.removeDKP(guild, player, dkp);
             // Assert
-            const result = await collection.findOne({player, guild});
+            const result = await playersCollection.findOne({ player, guild });
             expect(result.current).toBe(0);
         });
 
@@ -76,11 +80,11 @@ describe('DKPManager', () => {
             const player = 'player';
             const dkp = 4;
             const comment = 'Bad loot';
-            await collection.insertOne({player, current: dkp, guild});
+            await playersCollection.insertOne({ player, current: dkp, guild });
             // Act
             await manager.removeDKP(guild, player, dkp, comment);
             // Assert
-            const result = await collection.findOne({player});
+            const result = await playersCollection.findOne({ player });
             expect(result.current).toBe(0);
             const log = result.log[0];
             expect(log.dkp).toBe(-dkp);
@@ -91,20 +95,79 @@ describe('DKPManager', () => {
     });
 
     describe('listPlayers()', () => {
-        it('should list all players with their current DKP', async () => {
+        it('should list all players with their current DKP and attendance', async () => {
             // Arrange
             const manager = new DKPManager(client);
-            const player1 = 'player1';
-            const dkp1 = 8;
-            const player2 = 'player2';
-            const dkp2 = 4;
-            await collection.insertOne({player: player1, current: dkp1, assistance: 2, log: [], guild});
-            await collection.insertOne({player: player2, current: dkp2, assistance: 1, log: [], guild});
+            const player1 = 'Sdcaos';
+            const player2 = 'Troels';
+            const player3 = 'Scryll';
+            await playersCollection.insertOne({
+                player: player1,
+                current: 8,
+                log: [],
+                guild,
+                creationDate: 100, // oldest player
+            });
+            await playersCollection.insertOne({
+                player: player2,
+                current: 20,
+                log: [],
+                guild,
+                creationDate: 500, //not so oldest
+            });
+
+            await playersCollection.insertOne({
+                player: player3,
+                current: 5,
+                log: [],
+                guild,
+                creationDate: 1100, //new player
+            });
+
+            await raidsCollection.insertOne({
+                guild,
+                name: 'Nagafen',
+                date: 1000, //recent raid not deprecated
+                attendance: [
+                    { players: [player1, player2], comment: 'Start' },
+                    { players: [player1, player2], comment: 'Tick' },
+                    { players: [player1, player2], comment: 'Tick' },
+                    { players: [player1], comment: 'Tick' },
+                ],
+                deprecated: false,
+            });
+
+            await raidsCollection.insertOne({
+                guild,
+                name: 'Nagafen',
+                date: 400, //deprecated raid
+                attendance: [{ players: [player1], comment: 'Start' }],
+                deprecated: true,
+            });
+
+            await raidsCollection.insertOne({
+                guild,
+                name: 'Nagafen',
+                date: 1200, //newest raid
+                attendance: [{ players: [player1, player2, player3], comment: 'Start' }],
+                deprecated: false,
+            });
             // Act
             const result = await manager.listPlayers(guild);
             // Assert
-            expect(result.length).toBe(2);
-            expect(Object.keys(result[0])).toEqual(['player', 'current', 'assistance']);
+            expect(result.length).toBe(3);
+
+            expect(result[0].player).toBe(player1);
+            expect(result[0].current).toBe(8);
+            expect(result[0].attendance).toBe(100);
+
+            expect(result[1].player).toBe(player2);
+            expect(result[1].current).toBe(20);
+            expect(result[1].attendance).toBe(80);
+
+            expect(result[2].player).toBe(player3);
+            expect(result[2].current).toBe(5);
+            expect(result[2].attendance).toBe(100);
         });
     });
 
@@ -117,11 +180,17 @@ describe('DKPManager', () => {
             const character2 = 'Princess';
             const comment = 'Emperor kill';
             const dkp = 11;
-            await collection.insertOne({player, current: 0, log: [], characters: [character1, character2], guild});
+            await playersCollection.insertOne({
+                player,
+                current: 0,
+                log: [],
+                characters: [character1, character2],
+                guild,
+            });
             // Act
             await manager.addByCharacter(guild, character1, dkp, comment);
             // Assert
-            const result = await collection.findOne({player, guild});
+            const result = await playersCollection.findOne({ player, guild });
             expect(result.current).toBe(dkp);
             const log = result.log[0];
             expect(log.dkp).toBe(dkp);
@@ -131,42 +200,63 @@ describe('DKPManager', () => {
         });
     });
 
-    describe("addCharacter()", () => {
-        it("should add a character to a player", async () => {
+    describe('addCharacter()', () => {
+        it('should add a character to a player', async () => {
             // Arrange
             const manager = new DKPManager(client);
             const player = 'player';
             const character = 'Destroyer';
-            await collection.insertOne({player, current: 0, log: [], characters: [], guild});
+            await playersCollection.insertOne({
+                player,
+                current: 0,
+                log: [],
+                characters: [],
+                guild,
+            });
             // Act
             await manager.addCharacter(guild, player, character);
             // Assert
-            const result = await collection.findOne({player: player});
+            const result = await playersCollection.findOne({ player: player });
             expect(result.characters).toEqual([character]);
         });
 
-        it("should not add a character to a player if another player already owns it", async () => {
+        it('should not add a character to a player if another player already owns it', async () => {
             // Arrange
             const manager = new DKPManager(client);
             const player1 = 'player1';
             const player2 = 'player2';
             const character = 'Destroyer';
-            await collection.insertOne({player: player1, current: 0, log: [], characters: [], guild});
-            await collection.insertOne({player: player2, current: 0, log: [], characters: [character], guild});
+            await playersCollection.insertOne({
+                player: player1,
+                current: 0,
+                log: [],
+                characters: [],
+                guild,
+            });
+            await playersCollection.insertOne({
+                player: player2,
+                current: 0,
+                log: [],
+                characters: [character],
+                guild,
+            });
+
             // Act
             try {
                 await manager.addCharacter(guild, player1, character);
             } catch (error) {
                 // Assert
-                const result = await collection.findOne({player: player1});
+                const result = await playersCollection.findOne({
+                    player: player1,
+                });
                 expect(result.characters).toEqual([]);
                 expect(error.message).toBe(`Character ${character} already registered`);
             }
         });
     });
 
-    describe("different guilds", () => {
-        it("should not mix players from different guilds", async () => {
+    describe('different guilds', () => {
+        it('should not mix players from different guilds', async () => {
             // Arrange
             const manager = new DKPManager(client);
             const guild1 = 'The butchers';
@@ -175,8 +265,18 @@ describe('DKPManager', () => {
             const player2 = 'player2';
             const dkp1 = 8;
             const dkp2 = 4;
-            await collection.insertOne({player: player1, current: dkp1, assistance: 2, log: [], guild: guild1});
-            await collection.insertOne({player: player2, current: dkp2, assistance: 1, log: [], guild: guild2});
+            await playersCollection.insertOne({
+                player: player1,
+                current: dkp1,
+                log: [],
+                guild: guild1,
+            });
+            await playersCollection.insertOne({
+                player: player2,
+                current: dkp2,
+                log: [],
+                guild: guild2,
+            });
             // Act
             const result1 = await manager.listPlayers(guild1);
             const result2 = await manager.listPlayers(guild2);
@@ -186,31 +286,111 @@ describe('DKPManager', () => {
         });
     });
 
-    describe("saveGuildOptions()", () => {
-        it("should save the guild options", async () => {
+    describe('saveGuildOptions()', () => {
+        it('should save the guild options', async () => {
             // Arrange
             const manager = new DKPManager(client);
             const guild = 'The butchers';
-            const options = {adminRoles: ['manager']};
+            const options = { adminRoles: ['manager'] };
             // Act
             await manager.saveGuildOptions(guild, options);
             // Assert
-            const result = await client.db("DKP").collection(`GuildOptions`).findOne({guild});
+            const result = await optionsCollection.findOne({ guild });
             expect(result.adminRoles).toEqual(['manager']);
         });
-    });
 
-    describe("getGuildOptions()", () => {
-        it("should get the guild options", async () => {
+        it('should update the guild options independently', async () => {
             // Arrange
             const manager = new DKPManager(client);
             const guild = 'The butchers';
-            const options = {adminRoles: ['manager']};
-            await client.db("DKP").collection(`GuildOptions`).insertOne({guild, ...options});
+            // Act
+            await manager.saveGuildOptions(guild, { adminRole: 'officer' });
+            await manager.saveGuildOptions(guild, { raidChannel: 'raid' });
+            // Assert
+            const result = await optionsCollection.findOne({ guild });
+            expect(result).toEqual({ guild, adminRole: 'officer', raidChannel: 'raid', _id: result._id });
+        });
+    });
+
+    describe('getGuildOptions()', () => {
+        it('should get the guild options', async () => {
+            // Arrange
+            const manager = new DKPManager(client);
+            const guild = 'The butchers';
+            const options = { adminRoles: ['manager'] };
+            await optionsCollection.insertOne({ guild, ...options });
             // Act
             const result = await manager.getGuildOptions(guild);
             // Assert
             expect(result.adminRoles).toEqual(['manager']);
+        });
+    });
+
+    describe('createRaid()', () => {
+        it('should create a raid with the given name', async () => {
+            // Arrange
+            const manager = new DKPManager(client);
+            const guild = 'The butchers';
+            const name = 'Nagafen';
+            const players = ['player1', 'player2'];
+            // Act
+            await manager.createRaid(guild, name, players);
+
+            // Assert
+            const result = await raidsCollection.findOne({ guild });
+            expect(result.name).toEqual(name);
+            expect(result.guild).toEqual(guild);
+            expect(result.attendance).toEqual([{ players, comment: 'Start' }]);
+        });
+
+        describe('when there is already an active raid', () => {
+            it('should throw an error', async () => {
+                // Arrange
+                const manager = new DKPManager(client);
+                const guild = 'The butchers';
+                const name = 'Nagafen';
+                const players = ['player1', 'player2'];
+                await raidsCollection.insertOne({
+                    guild,
+                    name,
+                    date: new Date().getTime(),
+                    attendance: [players],
+                    active: true,
+                });
+                // Act
+                try {
+                    await manager.createRaid(guild, name, players);
+                } catch (error) {
+                    // Assert
+                    expect(error.message).toBe('There is already an active raid');
+                }
+            });
+        });
+    });
+
+    describe('updateRaidAttendance()', () => {
+        it('should add a tick to the raid', async () => {
+            // Arrange
+            const manager = new DKPManager(client);
+            const guild = 'The butchers';
+            const name = 'Nagafen';
+            const players = ['player1', 'player2'];
+            await raidsCollection.insertOne({
+                guild,
+                name,
+                date: new Date().getTime(),
+                attendance: [players],
+            });
+
+            // Act
+            const raid = await raidsCollection.findOne({ guild });
+            await manager.updateRaidAttendance(guild, raid, ['player1']);
+            // Assert
+            const result = await raidsCollection.findOne({ guild });
+            expect(result.attendance[1]).toEqual({
+                players: ['player1'],
+                comment: 'Tick',
+            });
         });
     });
 });

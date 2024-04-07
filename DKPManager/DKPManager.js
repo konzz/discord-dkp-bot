@@ -14,11 +14,12 @@ module.exports = class DKPManager {
             throw new Error('There is already an active raid');
         }
 
+        const date = new Date().getTime();
         const result = await this.raids.insertOne({
             guild,
             name,
-            date: new Date().getTime(),
-            attendance: [{ players, comment: 'Start' }],
+            date,
+            attendance: [{ players, comment: 'Start', date, dkps: dkpsPerTick }],
             tickDuration,
             dkpsPerTick,
             active: true,
@@ -28,8 +29,9 @@ module.exports = class DKPManager {
         return this.raids.findOne({ _id: result.insertedId });
     }
 
-    async updateRaidAttendance(guild, raid, players, comment = 'Tick') {
-        return this.raids.updateOne({ _id: raid._id, guild }, { $push: { attendance: { players, comment } } });
+    async updateRaidAttendance(guild, raid, players, comment, dkps) {
+        const date = new Date().getTime();
+        return this.raids.updateOne({ _id: raid._id, guild }, { $push: { attendance: { players, comment, date, dkps } } });
     }
 
     async getActiveRaid(guild) {
@@ -38,6 +40,22 @@ module.exports = class DKPManager {
 
     async endRaid(guild) {
         return this.raids.updateOne({ active: true, guild }, { $set: { active: false } });
+    }
+
+    async getRaidDKPMovements(guild, raidId) {
+        const raid = await this.raids.findOne({ _id: raidId }, { projection: { attendance: 1 } });
+        if (!raid) {
+            throw new Error('Raid not found');
+        }
+
+        const loots = await this.players.aggregate([
+            { $match: { guild } },
+            { $unwind: '$log' },
+            { $match: { 'log.raid._id': raidId, 'log.dkp': { $lt: 0 } } },
+            { $project: { player: 1, dkps: '$log.dkp', comment: '$log.comment', date: '$log.date', _id: 0 } },
+        ]).toArray();
+
+        return [...loots, ...raid.attendance].sort((a, b) => a.date - b.date);
     }
 
     async deprecateOldRaids(guild, time) {
@@ -63,7 +81,7 @@ module.exports = class DKPManager {
         );
     }
 
-    async removeDKP(guild, player, dkp, comment, loot = false) {
+    async removeDKP(guild, player, dkp, comment, raid) {
         return this.players.findOneAndUpdate(
             { player, guild },
             {
@@ -73,7 +91,7 @@ module.exports = class DKPManager {
                         dkp: -dkp,
                         comment,
                         date: new Date().getTime(),
-                        loot,
+                        raid,
                     },
                 },
                 $setOnInsert: { creationDate: new Date().getTime() },
@@ -107,30 +125,54 @@ module.exports = class DKPManager {
         );
     }
 
-    async getPlayer(guild, player) {
-        return this.players.findOne({ player, guild });
+    calculatePlayerAttendance(player, raids) {
+        const totalAttendancePossibleSincePlayerJoined = raids.reduce((total, raid) => {
+            if (raid.date < (player.creationDate - 60000)) return total;
+            return total + raid.attendance.length;
+        }, 0);
+
+        if (totalAttendancePossibleSincePlayerJoined === 0) {
+            return { ...player, attendance: 100 };
+        }
+
+        console.log(player, totalAttendancePossibleSincePlayerJoined);
+
+        const playerAttendedRaids = raids.reduce((total, raid) => {
+            const playerAttendance = raid.attendance.filter((attendance) => attendance.players.includes(player.player));
+            return total + playerAttendance.length;
+        }, 0);
+        const attendance = parseFloat(((playerAttendedRaids / totalAttendancePossibleSincePlayerJoined) * 100).toFixed(2));
+        const maxBid = Math.ceil(player.current * attendance / 100);
+        return { ...player, attendance, maxBid };
+    }
+
+    async getPlayer(guild, playerId) {
+        const raids = await this.raids.find({ guild, deprecated: false }).toArray();
+        const player = await this.players.findOne({ player: playerId, guild });
+        if (!player) {
+            throw new Error('Player not found');
+        }
+        return this.calculatePlayerAttendance(player, raids);
     }
 
     async listPlayers(guild) {
-        const players = await this.players.find({ guild }).project({ player: 1, current: 1, _id: 0, creationDate: 1 }).toArray();
-        const raids = await this.raids.find({ guild, deprecated: false }).toArray();
+        try {
+            const players = await this.players.find({ guild }).project({ player: 1, current: 1, _id: 0, creationDate: 1 }).toArray();
+            const raids = await this.raids.find({ guild, deprecated: false }).toArray();
 
-        return players.map((player) => {
-            const totalAttendancePossibleSincePlayerJoined = raids.reduce((total, raid) => {
-                if (raid.date < (player.creationDate - 60000)) return total;
-                return total + raid.attendance.length;
-            }, 0);
-
-            const playerAttendedRaids = raids.reduce((total, raid) => {
-                const playerAttendance = raid.attendance.filter((attendance) => attendance.players.includes(player.player));
-                return total + playerAttendance.length;
-            }, 0);
-            return { ...player, attendance: ((playerAttendedRaids / totalAttendancePossibleSincePlayerJoined) * 100).toFixed(2) };
-        });
+            return players.map(player => this.calculatePlayerAttendance(player, raids));
+        }
+        catch (e) {
+            console.error('Error listing players', e);
+            return [];
+        }
     }
 
-    async getAll(guild) {
-        return this.players.find({ guild }).project({ _id: 0 }).toArray();
+    async getAll(guild, collection) {
+        if (!this[collection]) {
+            throw new Error(`Collection ${collection} not found`);
+        }
+        return this[collection].find({ guild }).project({ _id: 0 }).toArray();
     }
 
     async addCharacter(guild, player, character) {

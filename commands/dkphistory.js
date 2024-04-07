@@ -10,10 +10,10 @@ module.exports = {
 		const user = interaction.options.getUser('player') || interaction.user;
 		const player = await manager.getPlayer(guild, user.id);
 		if (!player) {
-			await interaction.reply(`${user.username} has no DKP history`);
+			await interaction.reply(`:prohibited: ${user.username} has no DKP history`, { ephemeral: true });
 			return;
 		}
-		const reply = player.log.map(e => `- ${new Date(e.date).toDateString()}:  **${e.dkp}** *${e.raid?.name}* *${e.comment}*`);
+		const reply = player.log.map(e => `- <t:${Math.floor(e.date / 1000)}:d>  **${e.dkp}** *${e.raid?.name}* *${e.comment}*`);
 		await interaction.reply(reply.join('\n'), { ephemeral: true });
 	},
 };

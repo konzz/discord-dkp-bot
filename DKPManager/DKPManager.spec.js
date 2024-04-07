@@ -1,6 +1,7 @@
-const { deserialize } = require('mongodb');
-const client = require('../db.js');
+const { MongoClient } = require('mongodb');
+const client = new MongoClient('mongodb://localhost:27017');
 const DKPManager = require('./DKPManager.js');
+
 describe('DKPManager', () => {
     let playersCollection;
     let raidsCollection;
@@ -8,21 +9,20 @@ describe('DKPManager', () => {
 
     const guild = 'The butchers';
     beforeAll(async () => {
-        process.env.MONGO_URL = 'mongodb://localhost:27017';
         await client.connect();
         playersCollection = client.db('DKP').collection(`players`);
         raidsCollection = client.db('DKP').collection(`raids`);
         optionsCollection = client.db('DKP').collection(`options`);
     });
 
+    afterAll(async () => {
+        await client.close();
+    });
+
     beforeEach(async () => {
         await playersCollection.deleteMany({});
         await raidsCollection.deleteMany({});
         await optionsCollection.deleteMany({});
-    });
-
-    afterAll(async () => {
-        await client.close();
     });
 
     describe('addDKP()', () => {
@@ -106,14 +106,14 @@ describe('DKPManager', () => {
                 current: 8,
                 log: [],
                 guild,
-                creationDate: 100, // oldest player
+                creationDate: 100000, // oldest player
             });
             await playersCollection.insertOne({
                 player: player2,
                 current: 20,
                 log: [],
                 guild,
-                creationDate: 500, //not so oldest
+                creationDate: 500000, //not so oldest
             });
 
             await playersCollection.insertOne({
@@ -121,13 +121,13 @@ describe('DKPManager', () => {
                 current: 5,
                 log: [],
                 guild,
-                creationDate: 1100, //new player
+                creationDate: 1100000, //new player
             });
 
             await raidsCollection.insertOne({
                 guild,
                 name: 'Nagafen',
-                date: 1000, //recent raid not deprecated
+                date: 1000000, //recent raid not deprecated
                 attendance: [
                     { players: [player1, player2], comment: 'Start' },
                     { players: [player1, player2], comment: 'Tick' },
@@ -140,7 +140,7 @@ describe('DKPManager', () => {
             await raidsCollection.insertOne({
                 guild,
                 name: 'Nagafen',
-                date: 400, //deprecated raid
+                date: 400000, //deprecated raid
                 attendance: [{ players: [player1], comment: 'Start' }],
                 deprecated: true,
             });
@@ -148,7 +148,7 @@ describe('DKPManager', () => {
             await raidsCollection.insertOne({
                 guild,
                 name: 'Nagafen',
-                date: 1200, //newest raid
+                date: 1200000, //newest raid
                 attendance: [{ players: [player1, player2, player3], comment: 'Start' }],
                 deprecated: false,
             });
@@ -340,7 +340,7 @@ describe('DKPManager', () => {
             const result = await raidsCollection.findOne({ guild });
             expect(result.name).toEqual(name);
             expect(result.guild).toEqual(guild);
-            expect(result.attendance).toEqual([{ players, comment: 'Start' }]);
+            expect(result.attendance).toEqual([{ players, comment: 'Start', date: result.attendance[0].date, dkps: 1 }]);
         });
 
         describe('when there is already an active raid', () => {
@@ -384,13 +384,48 @@ describe('DKPManager', () => {
 
             // Act
             const raid = await raidsCollection.findOne({ guild });
-            await manager.updateRaidAttendance(guild, raid, ['player1']);
+            await manager.updateRaidAttendance(guild, raid, ['player1'], 'Tick', 1);
             // Assert
             const result = await raidsCollection.findOne({ guild });
             expect(result.attendance[1]).toEqual({
                 players: ['player1'],
                 comment: 'Tick',
+                date: result.attendance[1].date,
+                dkps: 1,
             });
+        });
+    });
+
+    describe('getRaidDKPMovements', () => {
+        it('should return the DKP movements of the players in the raid', async () => {
+            // Arrange
+            const manager = new DKPManager(client);
+            const guild = 'The butchers';
+            const raidName = 'Nagafen';
+            const player1 = 'player1';
+            const player2 = 'player2';
+            const raid = await manager.createRaid(guild, raidName, [player1, player2]);
+            await manager.addDKP(guild, player1, 1, 'Start', raid);
+            await manager.addDKP(guild, player2, 1, 'Start', raid);
+
+            await manager.updateRaidAttendance(guild, raid, [player1, player2], 'Tick', 1);
+            await manager.addDKP(guild, player1, 1, 'Tick', raid);
+            await manager.addDKP(guild, player2, 1, 'Tick', raid);
+
+            await manager.updateRaidAttendance(guild, raid, [player1, player2], 'Kill boss', 5);
+            await manager.addDKP(guild, player1, 5, 'Kill boss', raid);
+            await manager.addDKP(guild, player2, 5, 'Kill boss', raid);
+
+            await manager.removeDKP(guild, player1, 5, 'Sword of truth', raid);
+
+            // Act
+            const result = await manager.getRaidDKPMovements(guild, raid._id);
+            // Assert
+            expect(result.length).toBe(4);
+            expect(result[0]).toEqual({ comment: 'Start', date: result[0].date, dkps: 1, players: [player1, player2] });
+            expect(result[1]).toEqual({ comment: 'Tick', date: result[1].date, dkps: 1, players: [player1, player2] });
+            expect(result[2]).toEqual({ comment: 'Kill boss', date: result[2].date, dkps: 5, players: [player1, player2] });
+            expect(result[3]).toEqual({ comment: 'Sword of truth', date: result[3].date, dkps: -5, player: player1 });
         });
     });
 });

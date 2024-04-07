@@ -11,11 +11,11 @@ module.exports = {
         list = list.sort((a, b) => b.current - a.current);
         const data = await Promise.all(list.map(async e => {
             const player = await interaction.guild.members.fetch(e.player);
-            return [player.nickname || player.user.globalName, e.current, e.attendance, Math.ceil(e.current * e.attendance / 100)];
+            return [player.nickname || player.user.globalName, e.current, e.attendance, e.maxBid];
         }));
 
         if (data.length === 0) {
-            await interaction.reply('No players found', { ephemeral: true });
+            await interaction.reply(':prohibited: No players found', { ephemeral: true });
             return;
         }
 

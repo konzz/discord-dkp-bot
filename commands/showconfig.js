@@ -10,12 +10,16 @@ module.exports = {
 
 		const adminRole = guildConfig.adminRole ? interaction.guild.roles.cache.get(guildConfig.adminRole) : null;
 		const raidChannel = guildConfig.raidChannel ? interaction.guild.channels.cache.get(guildConfig.raidChannel) : null;
+		const logChannel = guildConfig.logChannel ? interaction.guild.channels.cache.get(guildConfig.logChannel) : null;
+		const raidDeprecationTime = guildConfig.raidDeprecationTime || 0;
 
 		const config = [
-			{ name: 'Admin role', value: adminRole ? adminRole.name : 'Not set' },
+			{ name: 'DKP Officer role', value: adminRole ? adminRole.name : 'Not set' },
+			{ name: 'Raid deprecation time', value: raidDeprecationTime ? `${raidDeprecationTime / 86400000} days` : 'Not set' },
 			{ name: 'Raid channel', value: raidChannel ? raidChannel.name : 'Not set' },
+			{ name: 'Log channel', value: logChannel ? logChannel.name : 'Not set' },
 		];
 
-		await interaction.reply({ embeds: [{ title: 'Current configuration', fields: config }] });
+		await interaction.reply({ embeds: [{ title: 'Current configuration', fields: config, color: 5763719 }] });
 	},
 };

@@ -2,19 +2,26 @@ const fs = require('node:fs');
 const path = require('node:path');
 require('dotenv').config()
 const { Client, Events, GatewayIntentBits, Collection, REST, Routes } = require('discord.js');
+const DKPManager = require('./DKPManager/DKPManager.js');
+const Worker = require('./worker/Worker.js');
+const Logger = require('./utils/Logger');
+
 const dbClient = require('./db.js');
 try {
 	dbClient.connect();
 } catch (error) {
 	console.error(error);
 }
-const DKPManager = require('./DKPManager/DKPManager.js');
+
 const dkpManager = new DKPManager(dbClient);
 const token = process.env.DISCORD_TOKEN;
 const clientId = process.env.DISCORD_CLIENT_ID;
 
 // Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
+
+const worker = new Worker(client, dkpManager);
+const logger = new Logger(client);
 
 client.commands = new Collection();
 const commands = [];
@@ -57,7 +64,7 @@ client.on(Events.InteractionCreate, async interaction => {
 				return;
 			}
 		}
-		await command.execute(interaction, dkpManager);
+		await command.execute(interaction, dkpManager, logger);
 	} catch (error) {
 		console.error(error);
 		if (interaction.replied || interaction.deferred) {
@@ -78,14 +85,13 @@ client.once(Events.ClientReady, async c => {
 		await rest.put(Routes.applicationCommands(clientId), { body: commands })
 		console.log(`Successfully reloaded application commands.`);
 
-
-
 	} catch (error) {
 		// And of course, make sure you catch and log any errors!
 		console.error(error);
 	}
 
 	console.log(`Ready! Logged in as ${c.user.tag}`);
+	worker.start();
 });
 
 client.login(token);

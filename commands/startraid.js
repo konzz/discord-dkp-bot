@@ -5,14 +5,13 @@ module.exports = {
         .setName('startraid')
         .setDescription('Create a new raid')
         .addStringOption(option => option.setName('name').setDescription('Name').setRequired(true))
-        .addIntegerOption(option => option.setName('dkpspertick').setDescription('The amount of DKP to add each tick (default: 1)').setRequired(false))
-        .addIntegerOption(option => option.setName('tickduration').setDescription('Time between ticks (default: 1, 1 = 1h, 0.5 = 30m)').setRequired(false)),
-    async execute(interaction, manager) {
+        .addIntegerOption(option => option.setName('dkpspertick').setDescription('The amount of DKP to add each tick').setRequired(true))
+        .addNumberOption(option => option.setName('tickduration').setDescription('Time between ticks (1 = 6m, 0,5 = 3m, 10 = 1h)').setRequired(true)),
+    async execute(interaction, manager, logger) {
         const guild = interaction.guild.id;
         const name = interaction.options.getString('name');
-        const dkpsPerTick = interaction.options.getInteger('dkpspertick') || 1;
-        const _tickDuration = interaction.options.getInteger('tickduration') || 1;
-        const tickDuration = _tickDuration * 60000 * 60;
+        const dkpsPerTick = interaction.options.getInteger('dkpspertick');
+        const tickDuration = interaction.options.getNumber('tickduration') * 60000;
 
         const guildConfig = await manager.getGuildOptions(interaction.guild.id) || {};
         const raidChannel = guildConfig.raidChannel;
@@ -39,7 +38,10 @@ module.exports = {
             await manager.addDKP(guild, player, dkpsPerTick, 'Start', raid);
         });
 
-        await interaction.reply(`Raid ${name} started with ${playersInChannel.length} players on it. Remember to end it with /endraid`);
+        const minutes = tickDuration / 60000;
+        await interaction.reply(`Raid ${name} started with ${playersInChannel.length} players on it. ${dkpsPerTick} every ${minutes} minutes`, { ephemeral: true });
+
+        logger.sendRaidEmebed(guildConfig, raid, playersInChannel, 5763719, `${name} raid Start`);
     },
     restricted: true,
 };

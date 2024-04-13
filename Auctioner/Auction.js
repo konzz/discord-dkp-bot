@@ -16,7 +16,7 @@ module.exports = class Auction {
         this.auctionActive = false;
     }
 
-    bid(amount, playerData) {
+    bid(amount, playerData, bidForMain = true) {
         if (!this.auctionActive) {
             throw new Error('Auction is not active');
         }
@@ -27,7 +27,7 @@ module.exports = class Auction {
             existingBid.amount = amount;
             return;
         } else {
-            this.bids.push({ player: playerData.player, amount, attendance: playerData.attendance });
+            this.bids.push({ player: playerData.player, amount, attendance: playerData.attendance, bidForMain });
         }
     }
 
@@ -51,13 +51,22 @@ module.exports = class Auction {
         }
 
         if (amount > player.maxBid) {
-            throw new Error('Bid amount is greater than max allowed bid');
-        }
-        const notEnoughDKP = player.current < amount;
-        if (notEnoughDKP) {
-            throw new Error('Not enough DKP for this bid');
+            throw new Error(`Bid amount is greater than player max allowed bid. (${player.maxBid} max bid) `);
         }
     }
+
+    getWinner(bids) {
+        let validBids = bids.filter(bid => bid.valid);
+        if (validBids.some(bid => bid.bidForMain)) {
+            validBids = validBids.filter(bid => bid.bidForMain);
+        }
+
+        const bidsSortByAmount = validBids.sort((a, b) => b.amount - a.amount);
+        const topAmmountBidders = bidsSortByAmount.filter(bid => bid.amount === bidsSortByAmount[0].amount);
+        const topBiddersSortByAttendance = topAmmountBidders.sort((a, b) => b.attendance - a.attendance);
+        return topBiddersSortByAttendance.filter(bid => bid.attendance === topBiddersSortByAttendance[0].attendance);
+    }
+
 
     calculateWinner(playersList) {
         if (this.bids.length === 0) {
@@ -74,13 +83,8 @@ module.exports = class Auction {
             }
         });
 
-        //calculate winner, and resolve ties with the attendance
-        const winners = this.bids
-            .filter(bid => bid.valid)
-            .sort((a, b) => b.amount - a.amount).filter(bid => bid.amount === this.bids[0].amount)
-            .sort((a, b) => b.attendance - a.attendance).filter(bid => bid.attendance === this.bids[0].attendance);
+        const winners = this.getWinner(this.bids);
 
-        //if there is still a tie, return a random winner
         const winner = winners[Math.floor(Math.random() * winners.length)];
         this.winner = winner;
         return winner;

@@ -67,7 +67,9 @@ module.exports = class ItemSearch {
             return null;
         }).filter(text => text);
 
-        const lines = [...paragraphs, ...brs];
+        const effect = dom.window.document.querySelector('.item-stats a')?.text;
+
+        const lines = [...paragraphs, ...brs, effect];
         const uniqueLines = lines.filter((line, index) => lines.indexOf(line) === index);
 
         const item = {

@@ -8,7 +8,7 @@ module.exports = class DKPManager {
         this.guildOptions = db.collection(`options`);
     }
 
-    async createRaid(guild, name, players, tickDuration = 60000 * 60, dkpsPerTick = 1) {
+    async createRaid(guild, name, tickDuration = 60000 * 60, dkpsPerTick = 1) {
         const alreadyActiveRaid = await this.raids.findOne({ guild, active: true });
         if (alreadyActiveRaid) {
             throw new Error('There is already an active raid');
@@ -19,7 +19,7 @@ module.exports = class DKPManager {
             guild,
             name,
             date,
-            attendance: [{ players, comment: 'Start', date, dkps: dkpsPerTick }],
+            attendance: [],
             tickDuration,
             dkpsPerTick,
             active: true,
@@ -29,7 +29,7 @@ module.exports = class DKPManager {
         return this.raids.findOne({ _id: result.insertedId });
     }
 
-    async updateRaidAttendance(guild, raid, players, comment, dkps) {
+    async addRaidAttendance(guild, raid, players, comment, dkps) {
         const date = new Date().getTime();
         return this.raids.updateOne({ _id: raid._id, guild }, { $push: { attendance: { players, comment, date, dkps } } });
     }
@@ -44,6 +44,20 @@ module.exports = class DKPManager {
 
     async getRaidDKPMovements(guild, raidId) {
         const raid = await this.raids.findOne({ _id: raidId }, { projection: { attendance: 1 } });
+        //group attendance entries by comment untill different comment is found
+        const attendance = raid.attendance.reduce((acc, entry, index) => {
+            if (index === 0) {
+                acc.push({ comment: entry.comment, dkps: entry.dkps, date: entry.date });
+            }
+            else if (entry.comment !== raid.attendance[index - 1].comment) {
+                acc.push({ comment: entry.comment, dkps: entry.dkps, date: entry.date });
+            }
+            else if (entry.comment === raid.attendance[index - 1].comment) {
+                acc[acc.length - 1].dkps += entry.dkps;
+            }
+            return acc;
+        }, []);
+
         if (!raid) {
             throw new Error('Raid not found');
         }
@@ -52,7 +66,7 @@ module.exports = class DKPManager {
             { $match: { guild } },
             { $unwind: '$log' },
             { $match: { 'log.raid._id': raidId, 'log.dkp': { $lt: 0 } } },
-            { $project: { player: 1, dkps: '$log.dkp', comment: '$log.comment', date: '$log.date', _id: 0 } },
+            { $project: { player: 1, dkps: '$log.dkp', comment: '$log.comment', date: '$log.date', _id: 0, item: '$log.item' } },
         ]).toArray();
 
         return [...loots, ...raid.attendance].sort((a, b) => a.date - b.date);
@@ -72,7 +86,7 @@ module.exports = class DKPManager {
                         dkp: dkp,
                         comment,
                         date: new Date().getTime(),
-                        raid,
+                        raid: raid ? { _id: raid._id, name: raid.name } : null,
                     },
                 },
                 $setOnInsert: { creationDate: new Date().getTime() },
@@ -81,7 +95,7 @@ module.exports = class DKPManager {
         );
     }
 
-    async removeDKP(guild, player, dkp, comment, raid) {
+    async removeDKP(guild, player, dkp, comment, raid = null, item = null) {
         return this.players.findOneAndUpdate(
             { player, guild },
             {
@@ -91,7 +105,8 @@ module.exports = class DKPManager {
                         dkp: -dkp,
                         comment,
                         date: new Date().getTime(),
-                        raid,
+                        raid: raid ? { _id: raid._id, name: raid.name } : null,
+                        item,
                     },
                 },
                 $setOnInsert: { creationDate: new Date().getTime() },
@@ -116,7 +131,7 @@ module.exports = class DKPManager {
                         dkp: dkp,
                         comment,
                         date: new Date().getTime(),
-                        raid,
+                        raid: raid ? { _id: raid._id, name: raid.name } : null,
                     },
                 },
                 $setOnInsert: { creationDate: new Date().getTime() },
@@ -126,23 +141,27 @@ module.exports = class DKPManager {
     }
 
     calculatePlayerAttendance(player, raids) {
+        const debugID = '111214071935741952';
         const totalAttendancePossibleSincePlayerJoined = raids.reduce((total, raid) => {
-            if (raid.date < (player.creationDate - 60000)) return total;
+            if (raid.date < player.creationDate) {
+                return raid.attendance.filter((attendance) => attendance.date >= player.creationDate).length + total;
+            };
             return total + raid.attendance.length;
         }, 0);
 
-        if (totalAttendancePossibleSincePlayerJoined === 0) {
-            return { ...player, attendance: 100 };
-        }
 
-        console.log(player, totalAttendancePossibleSincePlayerJoined);
+        if (totalAttendancePossibleSincePlayerJoined === 0) {
+            return { ...player, attendance: 100, maxBid: player.current };
+        }
 
         const playerAttendedRaids = raids.reduce((total, raid) => {
             const playerAttendance = raid.attendance.filter((attendance) => attendance.players.includes(player.player));
             return total + playerAttendance.length;
         }, 0);
+
         const attendance = parseFloat(((playerAttendedRaids / totalAttendancePossibleSincePlayerJoined) * 100).toFixed(2));
         const maxBid = Math.ceil(player.current * attendance / 100);
+
         return { ...player, attendance, maxBid };
     }
 

@@ -8,12 +8,13 @@ module.exports = {
 	async execute(interaction, manager) {
 		const guild = interaction.guild.id;
 		const user = interaction.options.getUser('player') || interaction.user;
-		const player = await manager.getPlayer(guild, user.id);
-		if (!player) {
-			await interaction.reply(`:prohibited: ${user.username} has no DKP history`, { ephemeral: true });
-			return;
+		try {
+			const player = await manager.getPlayer(guild, user.id);
+			const reply = player.log.map(e => `- <t:${Math.floor(e.date / 1000)}:d>  **${e.dkp}**${e.raid ? ` *${e.raid.name}* ` : ' '}*${e.comment}*`);
+			await interaction.reply({ content: reply.join('\n'), ephemeral: true });
 		}
-		const reply = player.log.map(e => `- <t:${Math.floor(e.date / 1000)}:d>  **${e.dkp}** *${e.raid?.name}* *${e.comment}*`);
-		await interaction.reply(reply.join('\n'), { ephemeral: true });
+		catch (error) {
+			await interaction.reply({ content: `:prohibited: ${error}`, ephemeral: true });
+		}
 	},
-};
+}; 

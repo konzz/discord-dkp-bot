@@ -25,9 +25,12 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction, manager) {
         const guild = interaction.guild.id;
-        const playersFile = await getBackUpFile(manager, guild, 'players');
-        const raidsFile = await getBackUpFile(manager, guild, 'raids');
-
-        await interaction.reply({ content: `Backup created ${new Date().toLocaleString()}`, files: [playersFile, raidsFile] });
+        try {
+            const playersFile = await getBackUpFile(manager, guild, 'players');
+            const raidsFile = await getBackUpFile(manager, guild, 'raids');
+            await interaction.reply({ content: `Backup created ${new Date().toLocaleString()}`, files: [playersFile, raidsFile] });
+        } catch (error) {
+            await interaction.reply({ content: `Error creating backup ${error}`, ephemeral: true });
+        }
     },
 };

@@ -5,6 +5,7 @@ const { Client, Events, GatewayIntentBits, Collection, REST, Routes } = require(
 const DKPManager = require('./DKPManager/DKPManager.js');
 const Worker = require('./worker/Worker.js');
 const Logger = require('./utils/Logger');
+const Auctioner = require('./Auctioner/Auctioner.js');
 
 const dbClient = require('./db.js');
 try {
@@ -16,9 +17,10 @@ try {
 const dkpManager = new DKPManager(dbClient);
 const token = process.env.DISCORD_TOKEN;
 const clientId = process.env.DISCORD_CLIENT_ID;
+const auctioner = new Auctioner(dkpManager);
 
 // Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.DirectMessages] });
 
 const worker = new Worker(client, dkpManager);
 const logger = new Logger(client);

@@ -5,7 +5,7 @@ module.exports = {
         .setName('adddkp')
         .setDescription('Add DKP to a player')
         .addUserOption(option => option.setName('player').setDescription('The player').setRequired(true))
-        .addIntegerOption(option => option.setName('dkp').setDescription('The amount of DKP to add').setRequired(true))
+        .addIntegerOption(option => option.setName('dkp').setDescription('The amount of DKP to add').setMinValue(1).setRequired(true))
         .addStringOption(option => option.setName('comment').setDescription('Reason').setRequired(true)),
     async execute(interaction, manager) {
         const guild = interaction.guild.id;

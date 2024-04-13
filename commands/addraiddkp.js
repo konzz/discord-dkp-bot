@@ -37,7 +37,7 @@ module.exports = {
             await manager.addDKP(guild, player, dkp, comment, activeRaid);
         });
 
-        await manager.updateRaidAttendance(guild, activeRaid, playersInChannel, comment, dkp);
+        await manager.addRaidAttendance(guild, activeRaid, playersInChannel, comment, dkp);
         await interaction.reply(`Added ${dkp} DKP to all players (${playersInChannel.length}) in the raid channel`, { ephemeral: true });
 
         logger.sendRaidEmebed(guildConfig, activeRaid, playersInChannel, 15105570, `${activeRaid.name}: ${comment}`);

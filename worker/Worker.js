@@ -9,12 +9,14 @@ module.exports = class Worker {
 
     async start() {
         console.log('Worker started');
-        this.interval = setInterval(() => this.run(), 30000);
+        this.fastInterval = setInterval(() => this.runFastTasks(), 10000); // 10 seconds
+        this.slowInterval = setInterval(() => this.runSlowTasks(), 60 * 60 * 1000); // 1 hour
     }
 
     stop() {
         console.log('Worker stopped');
-        clearInterval(this.interval);
+        clearInterval(this.fastInterval);
+        clearInterval(this.slowInterval);
     }
 
     async tick(guildOptions, raid) {
@@ -22,12 +24,12 @@ module.exports = class Worker {
         const raidChannel = await discordGuild.channels.fetch(guildOptions.raidChannel);
         const playersInChannel = [...raidChannel.members.keys()];
 
-        await this.manager.updateRaidAttendance(guildOptions.guild, raid, playersInChannel, 'Tick', raid.dkpsPerTick);
         playersInChannel.forEach(async player => {
             await this.manager.addDKP(guildOptions.guild, player, raid.dkpsPerTick, 'Tick', raid);
         });
+        await this.manager.addRaidAttendance(guildOptions.guild, raid, playersInChannel, 'Tick', raid.dkpsPerTick);
 
-        this.logger.sendRaidEmebed(guildOptions, raid, playersInChannel, 3447003, `${raid.name} raid Tick`);
+        this.logger.sendRaidEmebed(guildOptions, raid, playersInChannel, 3447003, `${raid.name} raid *tick*`);
     }
 
     async deprecateRaids(guilds) {
@@ -53,9 +55,13 @@ module.exports = class Worker {
     }
 
 
-    async run() {
+    async runFastTasks() {
         const guilds = await this.manager.guildOptions.find({}).toArray();
         await this.processRaids(guilds);
+
+    }
+
+    async runSlowTasks() {
         await this.deprecateRaids(guilds);
     }
 }

@@ -334,13 +334,13 @@ describe('DKPManager', () => {
             const name = 'Nagafen';
             const players = ['player1', 'player2'];
             // Act
-            await manager.createRaid(guild, name, players);
+            await manager.createRaid(guild, name);
 
             // Assert
             const result = await raidsCollection.findOne({ guild });
             expect(result.name).toEqual(name);
             expect(result.guild).toEqual(guild);
-            expect(result.attendance).toEqual([{ players, comment: 'Start', date: result.attendance[0].date, dkps: 1 }]);
+            expect(result.attendance).toEqual([]);
         });
 
         describe('when there is already an active raid', () => {
@@ -359,7 +359,7 @@ describe('DKPManager', () => {
                 });
                 // Act
                 try {
-                    await manager.createRaid(guild, name, players);
+                    await manager.createRaid(guild, name);
                 } catch (error) {
                     // Assert
                     expect(error.message).toBe('There is already an active raid');
@@ -368,7 +368,7 @@ describe('DKPManager', () => {
         });
     });
 
-    describe('updateRaidAttendance()', () => {
+    describe('addRaidAttendance()', () => {
         it('should add a tick to the raid', async () => {
             // Arrange
             const manager = new DKPManager(client);
@@ -384,7 +384,7 @@ describe('DKPManager', () => {
 
             // Act
             const raid = await raidsCollection.findOne({ guild });
-            await manager.updateRaidAttendance(guild, raid, ['player1'], 'Tick', 1);
+            await manager.addRaidAttendance(guild, raid, ['player1'], 'Tick', 1);
             // Assert
             const result = await raidsCollection.findOne({ guild });
             expect(result.attendance[1]).toEqual({
@@ -404,19 +404,22 @@ describe('DKPManager', () => {
             const raidName = 'Nagafen';
             const player1 = 'player1';
             const player2 = 'player2';
-            const raid = await manager.createRaid(guild, raidName, [player1, player2]);
+            const raid = await manager.createRaid(guild, raidName);
+            await manager.addRaidAttendance(guild, raid, [player1, player2], 'Start', 1);
             await manager.addDKP(guild, player1, 1, 'Start', raid);
             await manager.addDKP(guild, player2, 1, 'Start', raid);
 
-            await manager.updateRaidAttendance(guild, raid, [player1, player2], 'Tick', 1);
+            await manager.addRaidAttendance(guild, raid, [player1, player2], 'Tick', 1);
             await manager.addDKP(guild, player1, 1, 'Tick', raid);
             await manager.addDKP(guild, player2, 1, 'Tick', raid);
 
-            await manager.updateRaidAttendance(guild, raid, [player1, player2], 'Kill boss', 5);
+            await manager.addRaidAttendance(guild, raid, [player1, player2], 'Kill boss', 5);
             await manager.addDKP(guild, player1, 5, 'Kill boss', raid);
             await manager.addDKP(guild, player2, 5, 'Kill boss', raid);
 
-            await manager.removeDKP(guild, player1, 5, 'Sword of truth', raid);
+            const swordOfTruth = { name: 'Sword of truth' };
+
+            await manager.removeDKP(guild, player1, 5, 'Sword of truth', raid, swordOfTruth);
 
             // Act
             const result = await manager.getRaidDKPMovements(guild, raid._id);
@@ -425,7 +428,7 @@ describe('DKPManager', () => {
             expect(result[0]).toEqual({ comment: 'Start', date: result[0].date, dkps: 1, players: [player1, player2] });
             expect(result[1]).toEqual({ comment: 'Tick', date: result[1].date, dkps: 1, players: [player1, player2] });
             expect(result[2]).toEqual({ comment: 'Kill boss', date: result[2].date, dkps: 5, players: [player1, player2] });
-            expect(result[3]).toEqual({ comment: 'Sword of truth', date: result[3].date, dkps: -5, player: player1 });
+            expect(result[3]).toEqual({ comment: 'Sword of truth', date: result[3].date, dkps: -5, player: player1, item: swordOfTruth });
         });
     });
 });

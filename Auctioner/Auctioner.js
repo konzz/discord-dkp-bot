@@ -2,8 +2,11 @@ const Auction = require('./Auction');
 
 class Auctioner {
 
-    constructor(dkpManager) {
-        this.dkpManager = dkpManager;
+    constructor(dkpManager = null) {
+        if (dkpManager) {
+            this.dkpManager = dkpManager;
+        }
+
         if (Auctioner.instance) {
             return Auctioner.instance;
         }
@@ -11,7 +14,7 @@ class Auctioner {
         this.auctions = [];
     }
 
-    startAuction(item, guild, duration = 60000, callback) {
+    startAuction(item, guild, callback, duration = 60000) {
         const auction = new Auction(guild, item, duration);
         this.auctions.push(auction);
         setTimeout(async () => {
@@ -24,13 +27,13 @@ class Auctioner {
         return auction;
     }
 
-    async bid(guild, auctionId, amount, player) {
+    async bid(guild, auctionId, amount, player, bidForMain = true) {
         const auction = this.auctions.find(auction => auction.id === auctionId);
         if (!auction) {
             throw new Error('Auction not found');
         }
         const playerData = await this.dkpManager.getPlayer(guild, player);
-        auction.bid(amount, playerData);
+        auction.bid(amount, playerData, bidForMain);
     }
 }
 

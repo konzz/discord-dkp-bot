@@ -8,6 +8,7 @@ module.exports = {
         .addChannelOption(option => option.setName('raidchannel').setDescription('The raid channel where members must be during raid').setRequired(true).addChannelTypes(ChannelType.GuildVoice))
         .addChannelOption(option => option.setName('logchannel').setDescription('Channel to ouput DKP log movements').setRequired(true).addChannelTypes(ChannelType.GuildText))
         .addNumberOption(option => option.setName('raiddeprecationtime').setDescription('Time to deprecate raids for atendance (1 = 1 days)').setRequired(true))
+        .addIntegerOption(option => option.setName('bidtime').setDescription('Bids time duration (1 = 1 second)').setMaxValue(1000).setMinValue(30).setRequired(true))
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction, manager) {
         const guild = interaction.guild.id;
@@ -16,8 +17,9 @@ module.exports = {
         const logChannel = interaction.options.getChannel('logchannel');
         const role = interaction.options.getRole('role');
         const raidDeprecationTime = interaction.options.getNumber('raiddeprecationtime') * 86400000;
-        await manager.saveGuildOptions(guild, { raidChannel: raidChannel.id, adminRole: role.id, logChannel: logChannel?.id, raidDeprecationTime });
+        const bidTime = interaction.options.getInteger('bidtime');
+        await manager.saveGuildOptions(guild, { raidChannel: raidChannel.id, adminRole: role.id, logChannel: logChannel?.id, raidDeprecationTime, bidTime });
 
-        await interaction.reply(`Updated configuration, use /showconfig to see the current configuration`);
+        await interaction.reply({ content: 'Configuration saved', ephemeral: true });
     },
 };

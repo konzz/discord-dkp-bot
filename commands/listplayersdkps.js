@@ -6,7 +6,7 @@ module.exports = {
         .setName('listplayersdkps')
         .setDescription('List all players and their current DKP'),
     async execute(interaction, manager) {
-        interaction.deferReply();
+        await interaction.deferReply();
         const guild = interaction.guild.id;
         let list = await manager.listPlayers(guild);
         list = list.sort((a, b) => b.current - a.current);

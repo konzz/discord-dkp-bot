@@ -88,7 +88,7 @@ module.exports = class Logger {
         return `${minutes > 0 ? minutes + 'm' : ''} ${remainingSeconds}s`;
     }
 
-    async itemsSearchToEmbed(interaction, items, forAuction = false) {
+    async itemsSearchToEmbed(interaction, items, forAuction = true) {
         if (!items) {
             interaction.reply({ content: 'No items found', ephemeral: true });
             return;
@@ -144,7 +144,6 @@ module.exports = class Logger {
                     components: forAuction ? [row] : [],
                     ephemeral: true
                 });
-                collector.stop();
             }
         });
 

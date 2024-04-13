@@ -62,6 +62,7 @@ module.exports = class Worker {
     }
 
     async runSlowTasks() {
+        const guilds = await this.manager.guildOptions.find({}).toArray();
         await this.deprecateRaids(guilds);
     }
 }

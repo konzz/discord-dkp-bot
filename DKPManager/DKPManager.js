@@ -141,7 +141,6 @@ module.exports = class DKPManager {
     }
 
     calculatePlayerAttendance(player, raids) {
-        const debugID = '111214071935741952';
         const totalAttendancePossibleSincePlayerJoined = raids.reduce((total, raid) => {
             if (raid.date < player.creationDate) {
                 return raid.attendance.filter((attendance) => attendance.date >= player.creationDate).length + total;
@@ -151,7 +150,7 @@ module.exports = class DKPManager {
 
 
         if (totalAttendancePossibleSincePlayerJoined === 0) {
-            return { ...player, attendance: 100, maxBid: player.current };
+            return { ...player, attendance: 100 };
         }
 
         const playerAttendedRaids = raids.reduce((total, raid) => {
@@ -160,9 +159,8 @@ module.exports = class DKPManager {
         }, 0);
 
         const attendance = parseFloat(((playerAttendedRaids / totalAttendancePossibleSincePlayerJoined) * 100).toFixed(2));
-        const maxBid = Math.ceil(player.current * attendance / 100);
 
-        return { ...player, attendance, maxBid };
+        return { ...player, attendance };
     }
 
     async getPlayer(guild, playerId) {
@@ -171,15 +169,19 @@ module.exports = class DKPManager {
         if (!player) {
             throw new Error('Player not found');
         }
-        return this.calculatePlayerAttendance(player, raids);
+        //get player position based on current dkp
+        const players = await this.players.find({ guild }).sort({ current: -1 }).toArray();
+        const position = players.findIndex(p => p.player === playerId) + 1;
+
+        return this.calculatePlayerAttendance({ ...player, position }, raids);
     }
 
-    async listPlayers(guild) {
+    async listPlayers(guild, page = 0, pageSize = 15) {
         try {
-            const players = await this.players.find({ guild }).project({ player: 1, current: 1, _id: 0, creationDate: 1 }).toArray();
+            const players = await this.players.find({ guild }).sort({ current: -1 }).skip(page * pageSize).limit(pageSize).toArray();
             const raids = await this.raids.find({ guild, deprecated: false }).toArray();
 
-            return players.map(player => this.calculatePlayerAttendance(player, raids));
+            return { players: players.map(player => this.calculatePlayerAttendance(player, raids)), total: await this.players.countDocuments({ guild }) };
         }
         catch (e) {
             console.error('Error listing players', e);

@@ -223,6 +223,65 @@ module.exports = class Logger {
         return message;
     }
 
+    playerListToEmbed(players, currentPlayer) {
+        const space = ' ';
+        const testData = [
+            ['Blue', '300', '5.85'],
+            ['Red', '400', '90.56'],
+            ['Green', '5000', '91'],
+            ['Yellow', '600', '92'],
+            ['Pink', '20170', '93'],
+            ['Purple', '80', '94'],
+            ['Dark Orange', '90', '95'],
+            ['Black', '100', '96'],
+            ['White', '110', '97'],
+            ['Gray', '120', '98.04'],
+            ['Light Gray', '130', '99'],
+            ['Dark Gray', '140', '100'],
+            ['Light Blue', '150', '100'],
+        ];
+
+        const separatorLine = '\n-----------------------------------------\n';
+        const separatorLine2 = '\n--------------------------\n';
+
+        const playerNames = players.map((row, index) => {
+            const position = index + 1;
+            return '| `' + position.toString().padStart(2, ' ') + '`: <@' + row.player + '>';
+        });
+
+        const playerData = players.map((row) => {
+            const attendance = row.attendance + '%';
+            return '| `' + row.current.toString().padStart(6, ' ') + ' ` |' + space.repeat(5) + '`' + attendance.padStart(4, ' ').padEnd(5, ' ').padStart(6, ' ') + '`' + space.repeat(5) + '|';
+        });
+
+
+
+        const currentPlayerName = '| `' + currentPlayer.position.toString().padStart(2, ' ') + '`: <@' + currentPlayer.player + '>';
+        const currentPlayerAttendance = currentPlayer.attendance + '%';
+        const currentPlayerData = '| `' + currentPlayer.current.toString().padStart(6, ' ') + ' ` |' + space.repeat(5) + '`' + currentPlayerAttendance.padStart(4, ' ').padEnd(5, ' ').padStart(6, ' ') + '`' + space.repeat(5) + '|';
+
+        const columnOneHeader = '| # | **Player Name**' + separatorLine;
+        const columnTwoHeader = '| ' + space.repeat(5) + '**DKP** ' + space.repeat(5) + '| **Attendance** |' + separatorLine2;
+
+        return {
+            color: 0x0099ff,
+            fields: [
+                {
+                    name: '\u200B',
+                    value: columnOneHeader + playerNames.join(separatorLine) + separatorLine + separatorLine + currentPlayerName + separatorLine,
+                    inline: true
+                },
+                {
+                    name: '\u200B',
+                    value: columnTwoHeader + playerData.join(separatorLine2) + separatorLine2 + separatorLine2 + currentPlayerData + separatorLine2,
+                    inline: true
+                }
+            ]
+
+        };
+
+    }
+
     itemToEmbed(item, color = 3447003) {
         let separator = '--------------------------------------------------------\n';
         return {

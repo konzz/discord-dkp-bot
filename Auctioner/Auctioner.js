@@ -18,7 +18,7 @@ class Auctioner {
         const auction = new Auction(guild, item, duration);
         this.auctions.push(auction);
         setTimeout(async () => {
-            const players = await this.dkpManager.listPlayers(guild);
+            const players = await Promise.all(auction.bids.map(async bid => await this.dkpManager.getPlayer(guild, bid.player)));
             auction.endAuction();
             auction.calculateWinner(players);
             callback(auction);

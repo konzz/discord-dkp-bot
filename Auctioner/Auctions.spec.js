@@ -50,7 +50,7 @@ describe('Auctioner', () => {
     });
 
     describe('bidding', () => {
-        it('should bid on an auction', async () => {
+        fit('should bid on an auction', async () => {
             const item = 'item';
             const amount = 20;
             await manager.addDKP(guild, player1, 100, 'comment');

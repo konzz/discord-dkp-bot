@@ -153,21 +153,21 @@ describe('DKPManager', () => {
                 deprecated: false,
             });
             // Act
-            const result = await manager.listPlayers(guild);
+            const { players, total } = await manager.listPlayers(guild);
             // Assert
-            expect(result.length).toBe(3);
+            expect(total).toBe(3);
 
-            expect(result[0].player).toBe(player1);
-            expect(result[0].current).toBe(8);
-            expect(result[0].attendance).toBe(100);
+            expect(players[0].player).toBe(player2);
+            expect(players[0].current).toBe(20);
+            expect(players[0].attendance).toBe(80);
 
-            expect(result[1].player).toBe(player2);
-            expect(result[1].current).toBe(20);
-            expect(result[1].attendance).toBe(80);
+            expect(players[1].player).toBe(player1);
+            expect(players[1].current).toBe(8);
+            expect(players[1].attendance).toBe(100);
 
-            expect(result[2].player).toBe(player3);
-            expect(result[2].current).toBe(5);
-            expect(result[2].attendance).toBe(100);
+            expect(players[2].player).toBe(player3);
+            expect(players[2].current).toBe(5);
+            expect(players[2].attendance).toBe(100);
         });
     });
 
@@ -278,11 +278,11 @@ describe('DKPManager', () => {
                 guild: guild2,
             });
             // Act
-            const result1 = await manager.listPlayers(guild1);
-            const result2 = await manager.listPlayers(guild2);
+            const { total: total1 } = await manager.listPlayers(guild1);
+            const { total: total2 } = await manager.listPlayers(guild2);
             // Assert
-            expect(result1.length).toBe(1);
-            expect(result2.length).toBe(1);
+            expect(total1).toBe(1);
+            expect(total2).toBe(1);
         });
     });
 

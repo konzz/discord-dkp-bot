@@ -1,51 +1,69 @@
-const { SlashCommandBuilder, Routes } = require('discord.js');
-var { AsciiTable3, AlignmentEnum } = require('ascii-table3');
+const { SlashCommandBuilder, Routes, ButtonBuilder, ActionRowBuilder, ButtonStyle } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('listplayersdkps')
         .setDescription('List all players and their current DKP'),
-    async execute(interaction, manager) {
-        await interaction.deferReply();
+    async execute(interaction, manager, logger) {
         const guild = interaction.guild.id;
-        let list = await manager.listPlayers(guild);
-        list = list.sort((a, b) => b.current - a.current);
-        let data = await Promise.all(list.map(async e => {
-            const player = await interaction.guild.members.fetch(e.player);
-            return [player.nickname || player.user.globalName || player.user.username, e.current, e.attendance, e.maxBid];
-        }));
+        const currentPage = 0;
+        let { players, total } = await manager.listPlayers(guild, currentPage);
 
-        if (data.length === 0) {
+        if (total === 0) {
             await interaction.editReply({ content: ':prohibited: No players found', ephemeral: true });
             return;
         }
 
-        if (data.length <= 30) {
-            var table =
-                new AsciiTable3()
-                    .setHeading('Player', 'DKP', 'Attendance %', 'Max bid')
-                    .setAlign(3, AlignmentEnum.CENTER)
-                    .addRowMatrix(data);
+        const totalPages = Math.ceil(total / 15);
+        const currentPlayer = await manager.getPlayer(guild, interaction.user.id);
 
-            await interaction.editReply({ content: '```\n' + table.toString() + '\n```', ephemeral: true });
-            return;
+        const embed = logger.playerListToEmbed(players, currentPlayer);
+        embed.author = {
+            name: `${currentPage + 1}/${totalPages}`,
+        };
+
+        const previousPageButton = new ButtonBuilder().setCustomId('previousPage').setLabel('Previous Page').setDisabled(true).setStyle(ButtonStyle.Primary);
+        const nextPageButton = new ButtonBuilder().setCustomId('nextPage').setLabel('Next Page').setStyle(ButtonStyle.Primary);
+        if (totalPages === 1) {
+            nextPageButton.setDisabled(true);
         }
+        const row = new ActionRowBuilder().addComponents(previousPageButton, nextPageButton);
 
-        await interaction.editReply('Sending in chunks...');
-        let chunks = [];
-        while (data.length) {
-            chunks.push(data.splice(0, 30));
-        }
+        interaction.reply({
+            embeds: [embed],
+            components: [row],
+            ephemeral: true
+        })
 
-        for (let chunk of chunks) {
-            var table =
-                new AsciiTable3()
-                    .setHeading('Player', 'DKP', 'Attendance %', 'Max bid')
-                    .setAlign(3, AlignmentEnum.CENTER)
-                    .addRowMatrix(chunk);
+        const collectorFilter = i => i.user.id === interaction.user.id;
+        const collector = interaction.channel.createMessageComponentCollector({ time: 120_000, filter: collectorFilter });
+        collector.on('collect', async i => {
+            if (i.customId === 'previousPage') {
+                currentPage--;
+            } else if (i.customId === 'nextPage') {
+                currentPage++;
+            }
 
-            await interaction.channel.send({ content: '```\n' + table.toString() + '\n```' });
-        }
+            if (currentPage === 0) {
+                previousPageButton.setDisabled(true);
+            }
+
+            if (currentPage === totalPages - 1) {
+                nextPageButton.setDisabled(true);
+            }
+
+            const { players } = await manager.listPlayers(guild, currentPage);
+            const currentPlayer = await manager.getPlayer(guild, interaction.user.id);
+
+            const embed = logger.playerListToEmbed(players, currentPlayer);
+            embed.author = {
+                name: `${currentPage + 1}/${totalPages}`,
+            };
+
+            await i.update({
+                embeds: [embed]
+            });
+        });
 
     },
 };

@@ -50,8 +50,8 @@ module.exports = class Auction {
             throw new Error('Bid amount must be an integer');
         }
 
-        if (amount > player.maxBid) {
-            throw new Error(`Bid amount is greater than player max allowed bid. (${player.maxBid} max bid) `);
+        if (amount > player.current) {
+            throw new Error(`Bid amount is greater than player current DKP (${player.current})`);
         }
     }
 

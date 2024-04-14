@@ -52,7 +52,7 @@ module.exports = {
                     });
 
                     const collectorFilter = i => i.user.id === interaction.user.id;
-                    const confirmWinCollector = message.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 120_000, filter: collectorFilter });
+                    const confirmWinCollector = message.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 360_000, filter: collectorFilter });
                     confirmWinCollector.on('collect', async i => {
                         if (i.customId.startsWith('confirm_')) {
                             confirmButton.setDisabled(true);

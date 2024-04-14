@@ -6,15 +6,16 @@ module.exports = {
         .setDescription('List all players and their current DKP'),
     async execute(interaction, manager, logger) {
         const guild = interaction.guild.id;
-        const currentPage = 0;
-        let { players, total } = await manager.listPlayers(guild, currentPage);
+        let currentPage = 0;
+        const pageSize = 10;
+        let { players, total } = await manager.listPlayers(guild, currentPage, pageSize);
 
         if (total === 0) {
             await interaction.reply({ content: ':prohibited: No players found', ephemeral: true });
             return;
         }
 
-        const totalPages = Math.ceil(total / 10);
+        const totalPages = Math.ceil(total / pageSize);
         const currentPlayer = await manager.getPlayer(guild, interaction.user.id);
 
         const embed = logger.playerListToEmbed(players, currentPlayer);
@@ -52,7 +53,7 @@ module.exports = {
                 nextPageButton.setDisabled(true);
             }
 
-            const { players } = await manager.listPlayers(guild, currentPage);
+            const { players } = await manager.listPlayers(guild, currentPage, pageSize);
             const currentPlayer = await manager.getPlayer(guild, interaction.user.id);
 
             const embed = logger.playerListToEmbed(players, currentPlayer);

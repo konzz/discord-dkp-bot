@@ -71,5 +71,12 @@ module.exports = {
             });
         });
 
+        collector.on('end', async () => {
+            previousPageButton.setDisabled(true);
+            nextPageButton.setDisabled(true);
+            await interaction.editReply({
+                components: [row]
+            });
+        });
     },
 };

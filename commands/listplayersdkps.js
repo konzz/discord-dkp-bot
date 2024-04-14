@@ -18,7 +18,7 @@ module.exports = {
         const totalPages = Math.ceil(total / pageSize);
         const currentPlayer = await manager.getPlayer(guild, interaction.user.id);
 
-        const embed = logger.playerListToEmbed(players, currentPlayer, currentPage + 1, pageSize);
+        const embed = logger.playerListToEmbed(players, currentPlayer, currentPage, pageSize);
         embed.author = {
             name: `${currentPage + 1}/${totalPages}`,
         };
@@ -60,7 +60,7 @@ module.exports = {
             const { players } = await manager.listPlayers(guild, currentPage, pageSize);
             const currentPlayer = await manager.getPlayer(guild, interaction.user.id);
 
-            const embed = logger.playerListToEmbed(players, currentPlayer, currentPage + 1, pageSize);
+            const embed = logger.playerListToEmbed(players, currentPlayer, currentPage, pageSize);
             embed.author = {
                 name: `${currentPage + 1}/${totalPages}`,
             };

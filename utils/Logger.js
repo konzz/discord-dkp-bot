@@ -223,7 +223,7 @@ module.exports = class Logger {
         return message;
     }
 
-    playerListToEmbed(players, currentPlayer, currentPage = 1, pageSize = 10) {
+    playerListToEmbed(players, currentPlayer, currentPage = 0, pageSize = 10) {
         const space = ' ';
         const separatorLine = '\n-----------------------------------------\n';
         const separatorLine2 = '\n--------------------------\n';

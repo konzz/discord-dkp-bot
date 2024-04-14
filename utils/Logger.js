@@ -223,29 +223,13 @@ module.exports = class Logger {
         return message;
     }
 
-    playerListToEmbed(players, currentPlayer) {
+    playerListToEmbed(players, currentPlayer, currentPage = 1, pageSize = 10) {
         const space = ' ';
-        const testData = [
-            ['Blue', '300', '5.85'],
-            ['Red', '400', '90.56'],
-            ['Green', '5000', '91'],
-            ['Yellow', '600', '92'],
-            ['Pink', '20170', '93'],
-            ['Purple', '80', '94'],
-            ['Dark Orange', '90', '95'],
-            ['Black', '100', '96'],
-            ['White', '110', '97'],
-            ['Gray', '120', '98.04'],
-            ['Light Gray', '130', '99'],
-            ['Dark Gray', '140', '100'],
-            ['Light Blue', '150', '100'],
-        ];
-
         const separatorLine = '\n-----------------------------------------\n';
         const separatorLine2 = '\n--------------------------\n';
 
         const playerNames = players.map((row, index) => {
-            const position = index + 1;
+            const position = (index + 1) * (currentPage * pageSize + 1);
             return '| `' + position.toString().padStart(2, ' ') + '`: <@' + row.player + '>';
         });
 

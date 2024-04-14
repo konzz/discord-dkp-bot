@@ -18,7 +18,7 @@ module.exports = {
         const totalPages = Math.ceil(total / pageSize);
         const currentPlayer = await manager.getPlayer(guild, interaction.user.id);
 
-        const embed = logger.playerListToEmbed(players, currentPlayer);
+        const embed = logger.playerListToEmbed(players, currentPlayer, currentPage + 1, pageSize);
         embed.author = {
             name: `${currentPage + 1}/${totalPages}`,
         };
@@ -45,18 +45,22 @@ module.exports = {
                 currentPage++;
             }
 
-            if (currentPage === 0) {
+            if (currentPage <= 0) {
                 previousPageButton.setDisabled(true);
+            } else {
+                previousPageButton.setDisabled(false);
             }
 
-            if (currentPage === totalPages - 1) {
+            if (currentPage >= totalPages - 1) {
                 nextPageButton.setDisabled(true);
+            } else {
+                nextPageButton.setDisabled(false);
             }
 
             const { players } = await manager.listPlayers(guild, currentPage, pageSize);
             const currentPlayer = await manager.getPlayer(guild, interaction.user.id);
 
-            const embed = logger.playerListToEmbed(players, currentPlayer);
+            const embed = logger.playerListToEmbed(players, currentPlayer, currentPage + 1, pageSize);
             embed.author = {
                 name: `${currentPage + 1}/${totalPages}`,
             };

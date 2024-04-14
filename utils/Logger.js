@@ -229,7 +229,7 @@ module.exports = class Logger {
         const separatorLine2 = '\n--------------------------\n';
 
         const playerNames = players.map((row, index) => {
-            const position = (index + 1) * (currentPage * pageSize + 1);
+            const position = (index + 1) + (currentPage * pageSize);
             return '| `' + position.toString().padStart(2, ' ') + '`: <@' + row.player + '>';
         });
 

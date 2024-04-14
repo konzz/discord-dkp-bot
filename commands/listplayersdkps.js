@@ -66,7 +66,8 @@ module.exports = {
             };
 
             await i.update({
-                embeds: [embed]
+                embeds: [embed],
+                components: [row]
             });
         });
 

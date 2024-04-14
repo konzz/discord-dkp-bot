@@ -176,7 +176,7 @@ module.exports = class DKPManager {
         return this.calculatePlayerAttendance({ ...player, position }, raids);
     }
 
-    async listPlayers(guild, page = 0, pageSize = 15) {
+    async listPlayers(guild, page = 0, pageSize = 10) {
         try {
             const players = await this.players.find({ guild }).sort({ current: -1 }).skip(page * pageSize).limit(pageSize).toArray();
             const raids = await this.raids.find({ guild, deprecated: false }).toArray();

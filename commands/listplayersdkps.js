@@ -10,11 +10,11 @@ module.exports = {
         let { players, total } = await manager.listPlayers(guild, currentPage);
 
         if (total === 0) {
-            await interaction.editReply({ content: ':prohibited: No players found', ephemeral: true });
+            await interaction.reply({ content: ':prohibited: No players found', ephemeral: true });
             return;
         }
 
-        const totalPages = Math.ceil(total / 15);
+        const totalPages = Math.ceil(total / 10);
         const currentPlayer = await manager.getPlayer(guild, interaction.user.id);
 
         const embed = logger.playerListToEmbed(players, currentPlayer);

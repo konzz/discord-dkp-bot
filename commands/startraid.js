@@ -15,6 +15,7 @@ module.exports = {
 
         const guildConfig = await manager.getGuildOptions(interaction.guild.id) || {};
         const raidChannel = guildConfig.raidChannel;
+
         if (!raidChannel) {
             await interaction.reply({ content: ':prohibited: Raid channel not set, use /configure to set it', ephemeral: true });
             return;
@@ -22,6 +23,15 @@ module.exports = {
 
         const channel = await interaction.guild.channels.fetch(raidChannel);
         const playersInChannel = [...channel.members.keys()];
+
+        let playersInSecondChannel = [];
+        const secondRaidChannel = guildConfig.secondRaidChannel;
+        if (secondRaidChannel) {
+            const secondChannel = await interaction.guild.channels.fetch(secondRaidChannel);
+            playersInSecondChannel = [...secondChannel.members.keys()];
+        }
+
+
         if (playersInChannel.length === 0) {
             await interaction.reply({ content: ':prohibited: No players in raid channel', ephemeral: true });
             return;
@@ -39,13 +49,17 @@ module.exports = {
             await manager.addDKP(guild, player, dkpsPerTick, comment, raid);
         });
 
-        manager.addRaidAttendance(guild, raid, playersInChannel, comment, dkpsPerTick);
+        playersInSecondChannel.forEach(async player => {
+            await manager.addDKP(guild, player, dkpsPerTick, comment, raid);
+        });
+
+        manager.addRaidAttendance(guild, raid, [...playersInChannel, ...playersInSecondChannel], comment, dkpsPerTick);
 
         const minutes = tickDuration / 60000;
         await interaction.reply({ content: `Raid ${name} started with ${dkpsPerTick} DKP per tick every ${minutes} minutes`, ephemeral: true }
         );
 
-        logger.sendRaidEmebed(guildConfig, raid, playersInChannel, 5763719, `${name} raid Start`);
+        logger.sendRaidEmebed(guildConfig, raid, [...playersInChannel, ...playersInSecondChannel], 5763719, `${name} raid Start`);
     },
     restricted: true,
 };

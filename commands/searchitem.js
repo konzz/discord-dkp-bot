@@ -11,6 +11,6 @@ module.exports = {
         const itemSearch = new ItemSearch();
         const items = await itemSearch.searchItem(search);
 
-        logger.itemsSearchToEmbed(interaction, items);
+        logger.itemsSearchToEmbed(interaction, items, false);
     },
 };

@@ -24,12 +24,24 @@ module.exports = class Worker {
         const raidChannel = await discordGuild.channels.fetch(guildOptions.raidChannel);
         const playersInChannel = [...raidChannel.members.keys()];
 
+        let playersInSecondChannel = [];
+        const secondRaidChannel = guildOptions.secondRaidChannel;
+        if (secondRaidChannel) {
+            const secondChannel = await discordGuild.channels.fetch(secondRaidChannel);
+            playersInSecondChannel = [...secondChannel.members.keys()];
+        }
+
         playersInChannel.forEach(async player => {
             await this.manager.addDKP(guildOptions.guild, player, raid.dkpsPerTick, 'Tick', raid);
         });
-        await this.manager.addRaidAttendance(guildOptions.guild, raid, playersInChannel, 'Tick', raid.dkpsPerTick);
 
-        this.logger.sendRaidEmebed(guildOptions, raid, playersInChannel, 3447003, `${raid.name} raid *tick*`);
+        playersInSecondChannel.forEach(async player => {
+            await this.manager.addDKP(guildOptions.guild, player, raid.dkpsPerTick, 'Tick', raid);
+        });
+
+        await this.manager.addRaidAttendance(guildOptions.guild, raid, [...playersInChannel, ...playersInSecondChannel], 'Tick', raid.dkpsPerTick);
+
+        this.logger.sendRaidEmebed(guildOptions, raid, [...playersInChannel, ...playersInSecondChannel], 3447003, `${raid.name} raid *tick*`);
     }
 
     async deprecateRaids(guilds) {

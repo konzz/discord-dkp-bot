@@ -17,7 +17,15 @@ module.exports = {
         const guildConfig = await manager.getGuildOptions(guild) || {};
         const raidChannel = await interaction.guild.channels.fetch(guildConfig.raidChannel);
         const playersInChannel = [...raidChannel.members.keys()];
-        await manager.addRaidAttendance(guild, activeRaid, playersInChannel, 'End', 0);
+
+        let playersInSecondChannel = [];
+        const secondRaidChannel = guildConfig.secondRaidChannel;
+        if (secondRaidChannel) {
+            const secondChannel = await interaction.guild.channels.fetch(secondRaidChannel);
+            playersInSecondChannel = [...secondChannel.members.keys()];
+        }
+
+        await manager.addRaidAttendance(guild, activeRaid, [...playersInChannel, ...playersInSecondChannel], 'End', 0);
 
         const log = await manager.getRaidDKPMovements(guild, activeRaid._id);
         const logMessage = await Promise.all(log.map(async (entry) => {

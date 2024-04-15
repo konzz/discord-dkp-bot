@@ -10,7 +10,7 @@ module.exports = class Logger {
         this.client = client;
     }
 
-    async sendRaidEmebed(guildOptions, raid, playersInChannel, color, title, logMessage = null) {
+    async sendRaidEmebed(guildOptions, raid, playersInChannel, color, title, dkps = null) {
         const discordGuild = await this.client.guilds.fetch(guildOptions.guild);
         const logChannel = discordGuild.channels.cache.get(guildOptions.logChannel);
 
@@ -49,7 +49,7 @@ module.exports = class Logger {
                         title,
                         fields: [
                             { name: "Time", value: `<t:${Math.floor(new Date().getTime() / 1000)}:t>`, inline: true },
-                            { name: "DKPs", value: raid.dkpsPerTick, inline: true },
+                            { name: "DKPs", value: dkps || raid.dkpsPerTick, inline: true },
                             { name: '\u200B', value: '\u200B' },
                             ...playerFields,
                         ],
@@ -102,7 +102,7 @@ module.exports = class Logger {
                     embeds: [{
                         title: 'Search Results',
                         description: items.map(item => `#${item.id}${' '.repeat(10 - item.id.length)}${item.name} - ${item.type}`).join('\n'),
-                        ephemeral: true
+                        ephemeral: forAuction
                     }]
                 });
 
@@ -117,7 +117,7 @@ module.exports = class Logger {
             await interaction.reply({
                 content: 'Search Results',
                 components: [...rows],
-                ephemeral: true
+                ephemeral: forAuction
             });
         } else {
             const row = new ActionRowBuilder();
@@ -126,12 +126,13 @@ module.exports = class Logger {
             await interaction.reply({
                 embeds: [this.itemToEmbed(items)],
                 components: forAuction ? [row] : [],
-                ephemeral: true
+                ephemeral: forAuction
             });
         }
 
         const collectorFilter = i => i.user.id === interaction.user.id;
         const collector = interaction.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 30_000, filter: collectorFilter });
+
         collector.on('collect', async i => {
             if (i.customId.startsWith('selectitem_')) {
                 const itemId = i.customId.split('_')[1];
@@ -142,7 +143,7 @@ module.exports = class Logger {
                 await i.update({
                     embeds: [this.itemToEmbed(item)],
                     components: forAuction ? [row] : [],
-                    ephemeral: true
+                    ephemeral: forAuction
                 });
             }
         });
@@ -154,10 +155,9 @@ module.exports = class Logger {
 
     async sendAuctionStartEmbed(guildOptions, auction) {
         const discordGuild = await this.client.guilds.fetch(guildOptions.guild);
-        const logChannel = discordGuild.channels.cache.get(guildOptions.logChannel);
+        const channel = discordGuild.channels.cache.get(guildOptions.auctionChannel);
         const bidTime = guildOptions.bidTime;
-
-        if (!logChannel) {
+        if (!channel) {
             return;
         }
 
@@ -166,7 +166,7 @@ module.exports = class Logger {
         const timeButton = new ButtonBuilder().setCustomId('time_' + auction.id).setLabel(this.formatSeconds(bidTime)).setStyle(ButtonStyle.Secondary).setDisabled(true);
         const row = new ActionRowBuilder().addComponents(button, buttonAlt, timeButton);
 
-        const message = await logChannel.send({
+        const message = await channel.send({
             content: '@everyone Bid started.',
             embeds: [this.itemToEmbed(auction.item, 15105570)],
             components: [row]
@@ -237,8 +237,6 @@ module.exports = class Logger {
             const attendance = row.attendance + '%';
             return '| `' + row.current.toString().padStart(6, ' ') + ' ` |' + space.repeat(5) + '`' + attendance.padStart(4, ' ').padEnd(5, ' ').padStart(6, ' ') + '`' + space.repeat(5) + '|';
         });
-
-
 
         const currentPlayerName = '| `' + currentPlayer.position.toString().padStart(2, ' ') + '`: <@' + currentPlayer.player + '>';
         const currentPlayerAttendance = currentPlayer.attendance + '%';

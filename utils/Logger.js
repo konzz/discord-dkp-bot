@@ -167,7 +167,7 @@ module.exports = class Logger {
         const row = new ActionRowBuilder().addComponents(button, buttonAlt, timeButton);
 
         const message = await channel.send({
-            content: '@everyone Bid started.',
+            content: 'Bid started.',
             embeds: [this.itemToEmbed(auction.item, 15105570)],
             components: [row]
         })
@@ -204,11 +204,6 @@ module.exports = class Logger {
                 const dmCollector = dmChannel.createMessageCollector({ time: 60000, filter: m => m.author.id === user });
                 dmCollector.on('collect', async m => {
                     const amount = parseInt(m.content);
-                    if (isNaN(amount)) {
-                        await dmChannel.send('Invalid amount');
-                        return;
-                    }
-
                     try {
                         await Auctioner.instance.bid(guildOptions.guild, auction.id, amount, user, forMain);
                         await dmChannel.send('Bid placed');

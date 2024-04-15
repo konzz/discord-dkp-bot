@@ -43,15 +43,15 @@ module.exports = class Auction {
 
     validateBidAmount(amount, player) {
         if (amount <= 0) {
-            throw new Error('Bid amount must be greater than 0');
+            throw new Error('DKP - Bot scowls at you. Bid amount must be greater than 0');
         }
 
         if (!Number.isInteger(amount)) {
-            throw new Error('Bid amount must be an integer');
+            throw new Error('DKP - Bot scowls at you. Bid amount must be an integer');
         }
 
         if (amount > player.current) {
-            throw new Error(`Bid amount is greater than player current DKP (${player.current})`);
+            throw new Error(`DKP - Bot scowls at you. Bid amount is greater than player current DKP (${player.current})`);
         }
     }
 
@@ -66,7 +66,6 @@ module.exports = class Auction {
         const topBiddersSortByAttendance = topAmmountBidders.sort((a, b) => b.attendance - a.attendance);
         return topBiddersSortByAttendance.filter(bid => bid.attendance === topBiddersSortByAttendance[0].attendance);
     }
-
 
     calculateWinner(playersList) {
         if (this.bids.length === 0) {

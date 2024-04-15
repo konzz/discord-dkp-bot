@@ -170,7 +170,7 @@ module.exports = class DKPManager {
             throw new Error('Player not found');
         }
         //get player position based on current dkp
-        const players = await this.players.find({ guild }).sort({ current: -1 }).toArray();
+        const players = await this.players.find({ guild }).sort({ current: -1, attendance: -1 }).toArray();
         const position = players.findIndex(p => p.player === playerId) + 1;
 
         return this.calculatePlayerAttendance({ ...player, position }, raids);
@@ -178,7 +178,7 @@ module.exports = class DKPManager {
 
     async listPlayers(guild, page = 0, pageSize = 10) {
         try {
-            const players = await this.players.find({ guild }).sort({ current: -1 }).skip(page * pageSize).limit(pageSize).toArray();
+            const players = await this.players.find({ guild }).sort({ current: -1, attendance: -1 }).skip(page * pageSize).limit(pageSize).toArray();
             const raids = await this.raids.find({ guild, deprecated: false }).toArray();
 
             return { players: players.map(player => this.calculatePlayerAttendance(player, raids)), total: await this.players.countDocuments({ guild }) };

@@ -35,7 +35,6 @@ module.exports = {
                 let message;
                 const callback = async (auction) => {
                     const embed = logger.itemToEmbed(auction.item, 5763719);
-                    const winnerName = auction.winner ? `<@${auction.winner.player}>` : 'No winner';
                     const alterBid = auction.winner && !auction.winner.bidForMain;
                     const row = new ActionRowBuilder();
                     const confirmButton = new ButtonBuilder().setCustomId('confirm_' + auction.id).setLabel('Confirm Winner').setStyle(ButtonStyle.Primary);

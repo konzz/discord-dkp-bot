@@ -15,8 +15,7 @@ module.exports = {
         const activeRaid = await manager.getActiveRaid(guild);
         manager.removeDKP(guild, player.id, dkp, comment, activeRaid);
 
-        const gplayer = await interaction.guild.members.fetch(player.id);
-        await interaction.reply(`Removed ${dkp} DKPs from ${gplayer.nickname || gplayer.user.username}`);
+        await interaction.reply(`Removed ${dkp} DKPs from <@${player.id}>. ${comment}`);
     },
     restricted: true,
 };

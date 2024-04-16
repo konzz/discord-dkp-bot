@@ -14,8 +14,7 @@ module.exports = {
         const comment = interaction.options.getString('comment');
         manager.addDKP(guild, player.id, dkp, comment);
 
-        const gplayer = await interaction.guild.members.fetch(player.id);
-        await interaction.reply(`Added ${dkp} DKPs to ${gplayer.nickname || gplayer.user.username}`);
+        await interaction.reply(`Added ${dkp} DKPs to <@${player.id}>. ${comment}`);
     },
     restricted: true,
 };

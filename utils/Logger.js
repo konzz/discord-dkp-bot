@@ -145,11 +145,14 @@ module.exports = class Logger {
                     components: forAuction ? [row] : [],
                     ephemeral: forAuction
                 });
+                collector.stop();
             }
         });
 
-        collector.on('end', async () => {
-            await interaction.editReply({ content: 'Time out', components: [] });
+        collector.on('end', async (_collected, reason) => {
+            if (reason === 'time') {
+                await interaction.editReply({ content: 'Time out', components: [] });
+            }
         });
     };
 
@@ -173,22 +176,35 @@ module.exports = class Logger {
         })
 
         let seconds = bidTime;
-        const interval = setInterval(() => {
-            timeButton.setLabel(this.formatSeconds(seconds));
-            if (seconds < 1) {
-                button.setDisabled(true);
-                buttonAlt.setDisabled(true);
-            }
+        let lastUpdate = Date.now();
+        const updateMessage = async () => {
+            while (seconds > 0) {
+                const now = Date.now();
+                const deltaSeconds = Math.round((now - lastUpdate) / 1000);
 
-            if (seconds < 11) {
-                timeButton.setStyle(ButtonStyle.Danger);
+                seconds -= deltaSeconds;
+                lastUpdate = now;
+
+                timeButton.setLabel(this.formatSeconds(seconds));
+                if (seconds < 1) {
+                    button.setDisabled(true);
+                    buttonAlt.setDisabled(true);
+                }
+
+                if (seconds < 11) {
+                    timeButton.setStyle(ButtonStyle.Danger);
+                }
+
+                if (seconds > 0) {
+                    await message.edit({ components: [row] });
+                }
+
+                const timeToWait = seconds < 10 ? 1000 : 5000;
+
+                await new Promise(resolve => setTimeout(resolve, timeToWait));
             }
-            message.edit({ components: [row] });
-            seconds--;
-            if (seconds < 0) {
-                clearInterval(interval);
-            }
-        }, 1000);
+        }
+        updateMessage();
 
         const collector = message.createMessageComponentCollector({ componentType: ComponentType.Button, time: bidTime * 1000 });
         collector.on('collect', async i => {

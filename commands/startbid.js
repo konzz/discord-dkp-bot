@@ -35,15 +35,15 @@ module.exports = {
                 let message;
                 const callback = async (auction) => {
                     const embed = logger.itemToEmbed(auction.item, 5763719);
-                    const winnerName = auction.winner ? await guild.members.fetch(auction.winner.player) : 'No winner';
+                    const winnerName = auction.winner ? `<@${auction.winner.player}>` : 'No winner';
                     const alterBid = auction.winner && !auction.winner.bidForMain;
                     const row = new ActionRowBuilder();
                     const confirmButton = new ButtonBuilder().setCustomId('confirm_' + auction.id).setLabel('Confirm Winner').setStyle(ButtonStyle.Primary);
                     row.addComponents(confirmButton);
-
+                    const winnerMessage = auction.winner ? `<@${auction.winner.player}>${alterBid ? ' - alter' : ''} for ${auction.winner.amount} dkp` : 'No winner';
                     embed.fields = [
-                        { name: 'Winner', value: `*${winnerName}*${alterBid ? ' - Alter' : ''}` },
-                        { name: 'Bids', value: auction.bids.sort((a, b) => b.amount - a.amount).map(bid => `- ${bid.amount}${bid.bidForMain ? '' : ' - Alter'}`).join('\n') }
+                        { name: 'Winner', value: winnerMessage },
+                        { name: 'Bids', value: auction.bids.sort((a, b) => b.amount - a.amount).map(bid => `- ${bid.amount}${bid.bidForMain ? '' : ' - alter'}`).join('\n') }
                     ];
 
                     await message.edit({
@@ -74,9 +74,9 @@ module.exports = {
                     });
                 };
 
-                const bidTime = guildConfig.bidTime + 5;
-                const auction = await Auctioner.instance.startAuction(item, guild.id, callback, bidTime * 1000);
-                message = await logger.sendAuctionStartEmbed(guildConfig, auction);
+                const bidTime = guildConfig.bidTime + 3;
+                const startedAuction = await Auctioner.instance.startAuction(item, guild.id, callback, bidTime * 1000);
+                message = await logger.sendAuctionStartEmbed(guildConfig, startedAuction);
             }
         });
     },

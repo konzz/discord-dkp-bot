@@ -159,6 +159,7 @@ module.exports = class Logger {
     async sendAuctionStartEmbed(guildOptions, auction) {
         const discordGuild = await this.client.guilds.fetch(guildOptions.guild);
         const channel = discordGuild.channels.cache.get(guildOptions.auctionChannel);
+        const raidChanel = guildOptions.raidChannel;
         const bidTime = guildOptions.bidTime;
         if (!channel) {
             return;
@@ -170,7 +171,7 @@ module.exports = class Logger {
         const row = new ActionRowBuilder().addComponents(button, buttonAlt, timeButton);
 
         const message = await channel.send({
-            content: 'Bid started.',
+            content: `<#${raidChanel}> Bid started.`,
             embeds: [this.itemToEmbed(auction.item, 15105570)],
             components: [row]
         })
@@ -195,13 +196,11 @@ module.exports = class Logger {
                     timeButton.setStyle(ButtonStyle.Danger);
                 }
 
-                if (seconds > 0) {
+                if (seconds >= 5 && auction.auctionActive) {
                     await message.edit({ components: [row] });
                 }
 
-                const timeToWait = seconds < 10 ? 1000 : 5000;
-
-                await new Promise(resolve => setTimeout(resolve, timeToWait));
+                await new Promise(resolve => setTimeout(resolve, 5000));
             }
         }
         updateMessage();

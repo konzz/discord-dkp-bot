@@ -24,8 +24,10 @@ module.exports = {
             if (i.customId.startsWith('startbid_')) {
                 const itemId = i.customId.split('_')[1];
                 const item = await itemSearch.searchItem(itemId);
+                //get the channel id
+                const raidChannel = guildConfig.raidChannel;
                 await i.update({
-                    content: 'Bid started.',
+                    content: `Bid started!`,
                     embeds: [],
                     components: [],
                     ephemeral: false
@@ -73,7 +75,7 @@ module.exports = {
                     });
                 };
 
-                const bidTime = guildConfig.bidTime + 3;
+                const bidTime = guildConfig.bidTime + 5;
                 const startedAuction = await Auctioner.instance.startAuction(item, guild.id, callback, bidTime * 1000);
                 message = await logger.sendAuctionStartEmbed(guildConfig, startedAuction);
             }

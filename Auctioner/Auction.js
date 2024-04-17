@@ -6,7 +6,6 @@ module.exports = class Auction {
         this.item = item;
         this.bids = [];
         this.id = `${guild}_${uniqid()}`;
-        this.auctionActive = false;
         this.winner = null;
         this.guild = guild;
         this.auctionActive = true;

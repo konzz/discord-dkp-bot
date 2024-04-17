@@ -25,7 +25,7 @@ module.exports = {
                 const itemId = i.customId.split('_')[1];
                 const item = await itemSearch.searchItem(itemId);
                 //get the channel id
-                const raidChannel = guildConfig.raidChannel;
+                const officerRole = guildConfig.adminRole;
                 await i.update({
                     content: `Bid started!`,
                     embeds: [],
@@ -52,7 +52,7 @@ module.exports = {
                         components: auction.winner ? [row] : []
                     });
 
-                    const collectorFilter = i => i.user.id === interaction.user.id;
+                    const collectorFilter = i => i.user.id === interaction.user.id || i.member.roles.cache.has(officerRole);
                     const confirmWinCollector = message.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 360_000, filter: collectorFilter });
                     confirmWinCollector.on('collect', async i => {
                         if (i.customId.startsWith('confirm_')) {
@@ -65,13 +65,6 @@ module.exports = {
                             });
                             confirmWinCollector.stop();
                         }
-                    });
-
-                    confirmWinCollector.on('end', async () => {
-                        confirmButton.setDisabled(true);
-                        await message.edit({
-                            components: []
-                        });
                     });
                 };
 

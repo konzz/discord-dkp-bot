@@ -24,6 +24,7 @@ module.exports = class Auction {
         const existingBid = this.bids.find(bid => bid.player === playerData.player);
         if (existingBid) {
             existingBid.amount = amount;
+            existingBid.bidForMain = bidForMain;
             return;
         } else {
             this.bids.push({ player: playerData.player, amount, attendance: playerData.attendance, bidForMain });

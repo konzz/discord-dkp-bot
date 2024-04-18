@@ -5,13 +5,14 @@ module.exports = {
         .setName('listplayersdkps')
         .setDescription('List all players and their current DKP'),
     async execute(interaction, manager, logger) {
+        await interaction.deferReply({ ephemeral: true });
         const guild = interaction.guild.id;
         let currentPage = 0;
         const pageSize = 10;
         let { players, total } = await manager.listPlayers(guild, currentPage, pageSize);
 
         if (total === 0) {
-            await interaction.reply({ content: ':prohibited: No players found', ephemeral: true });
+            await interaction.editReply({ content: ':prohibited: No players found', ephemeral: true });
             return;
         }
 
@@ -30,7 +31,7 @@ module.exports = {
         }
         const row = new ActionRowBuilder().addComponents(previousPageButton, nextPageButton);
 
-        await interaction.reply({
+        await interaction.editReply({
             embeds: [embed],
             components: [row],
             ephemeral: true

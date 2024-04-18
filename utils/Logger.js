@@ -88,63 +88,63 @@ module.exports = class Logger {
         return `${minutes > 0 ? minutes + 'm' : ''} ${remainingSeconds}s`;
     }
 
-    async itemsSearchToEmbed(interaction, items, forAuction = true) {
-        if (!items) {
-            interaction.reply({ content: 'No items found', ephemeral: true });
-            return;
+    itemsToButtonRows(items) {
+        const buttons = items.map(item => new ButtonBuilder().setCustomId('selectitem_' + item.id).setLabel(item.name).setStyle(ButtonStyle.Secondary));
+        const buttonGroups = [];
+        while (buttons.length) {
+            buttonGroups.push(buttons.splice(0, 5));
         }
+        return buttonGroups.map(group => new ActionRowBuilder().addComponents(...group));
+    }
 
-        if (Array.isArray(items)) {
-            const buttons = items.map(item => new ButtonBuilder().setCustomId('selectitem_' + item.id).setLabel(item.name).setStyle(ButtonStyle.Secondary));
+    itemsToEmbededList(items) {
+        return {
+            title: 'Search Results',
+            description: items.map(item => `#${item.id}${' '.repeat(10 - item.id.length)}${item.name} - ${item.type}`).join('\n'),
+        }
+    }
 
-            if (buttons.length > 25) {
-                interaction.reply({
-                    embeds: [{
-                        title: 'Search Results',
-                        description: items.map(item => `#${item.id}${' '.repeat(10 - item.id.length)}${item.name} - ${item.type}`).join('\n'),
-                        ephemeral: forAuction
-                    }]
-                });
-
-                return;
-            }
-
-            const buttonGroups = [];
-            while (buttons.length) {
-                buttonGroups.push(buttons.splice(0, 5));
-            }
-            const rows = buttonGroups.map(group => new ActionRowBuilder().addComponents(...group));
-            await interaction.reply({
-                content: 'Search Results',
-                components: [...rows],
-                ephemeral: forAuction
-            });
-        } else {
-            const row = new ActionRowBuilder();
-            const button = new ButtonBuilder().setCustomId('startbid_' + items.id + '_' + uniqid()).setLabel('Start Auction').setStyle(ButtonStyle.Primary);
+    async sendItemEmbed(interaction, item, forAuction = true) {
+        const row = new ActionRowBuilder();
+            const button = new ButtonBuilder().setCustomId('startbid_' + item.id + '_' + uniqid()).setLabel('Start Auction').setStyle(ButtonStyle.Primary);
             row.addComponents(button);
-            await interaction.reply({
-                embeds: [this.itemToEmbed(items)],
+            await interaction.editReply({
+                embeds: [this.itemToEmbed(item)],
                 components: forAuction ? [row] : [],
                 ephemeral: forAuction
             });
+    }
+
+    async itemsSearchToEmbed(interaction, items, forAuction = true) {
+        if (!items) {
+            interaction.editReply({ content: 'No items found', ephemeral: true });
+            return;
         }
 
+        if (items.length && items.length > 25) {
+            interaction.editReply({embeds: [this.itemsToEmbededList(items)], ephemeral: true});
+            return;
+        }
+
+        if (!Array.isArray(items)) {
+            await this.sendItemEmbed(interaction, items, forAuction);
+            return;
+        }
+
+        const rows = this.itemsToButtonRows(items);
+        await interaction.editReply({
+            content: 'Search Results',
+            components: [...rows],
+            ephemeral: forAuction
+        });   
+        
         const collectorFilter = i => i.user.id === interaction.user.id;
         const collector = interaction.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 30_000, filter: collectorFilter });
-
         collector.on('collect', async i => {
             if (i.customId.startsWith('selectitem_')) {
                 const itemId = i.customId.split('_')[1];
                 const item = await itemSearch.searchItem(itemId);
-                const button = new ButtonBuilder().setCustomId('startbid_' + itemId + '_' + uniqid()).setLabel('Start Auction').setStyle(ButtonStyle.Primary);
-                const row = new ActionRowBuilder();
-                row.addComponents(button);
-                await i.update({
-                    embeds: [this.itemToEmbed(item)],
-                    components: forAuction ? [row] : [],
-                    ephemeral: forAuction
-                });
+                await this.sendItemEmbed(interaction, item, forAuction);
                 collector.stop();
             }
         });

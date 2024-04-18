@@ -12,6 +12,7 @@ module.exports = {
         .setDescription('start a bid for an item')
         .addStringOption(option => option.setName('search').setDescription('Item name or id').setRequired(true)),
     async execute(interaction, manager, logger) {
+        await interaction.deferReply({ ephemeral: true });
         const guild = interaction.guild;
         const guildConfig = await manager.getGuildOptions(interaction.guild.id) || {};
         const raidChannel = guildConfig.raidChannel;
@@ -19,6 +20,9 @@ module.exports = {
         const items = await itemSearch.searchItem(search);
 
         await logger.itemsSearchToEmbed(interaction, items, true);
+        if(items.length > 25) {
+            return;
+        }
 
         const collectorFilter = i => i.user.id === interaction.user.id;
         const collector = interaction.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 30_000, filter: collectorFilter });

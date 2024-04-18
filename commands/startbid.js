@@ -57,7 +57,7 @@ module.exports = {
                     const collectorFilter = i => i.user.id === interaction.user.id || i.member.roles.cache.has(officerRole);
                     const confirmWinCollector = message.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 360_000, filter: collectorFilter });
                     confirmWinCollector.on('collect', async i => {
-                        if (i.customId.startsWith('confirm_')) {
+                        if (i.customId.startsWith('confirm_' + auction.id)) {
                             confirmButton.setDisabled(true);
                             confirmButton.setLabel('Winner Confirmed').setStyle(ButtonStyle.Success);
                             const raid = await manager.getActiveRaid(guild.id);

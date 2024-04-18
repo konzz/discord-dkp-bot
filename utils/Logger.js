@@ -2,10 +2,6 @@ const { ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } = require(
 const Auctioner = require('../Auctioner/Auctioner');
 const ItemSearch = require('../ItemSearch');
 const uniqid = require('uniqid');
-debuger = false;
-if (process.env.DEBUG) {
-    debuger = require('../debuger');
-}
 
 const itemSearch = new ItemSearch();
 
@@ -225,7 +221,6 @@ module.exports = class Logger {
                     const amount = parseInt(m.content);
                     try {
                         await Auctioner.instance.bid(guildOptions.guild, auction.id, amount, user, forMain);
-                        if (debuger) debuger.log('Bid placed', auction.id);
                         await dmChannel.send('Bid placed');
                         dmCollector.stop();
                     } catch (e) {

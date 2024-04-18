@@ -3,7 +3,7 @@ const { SlashCommandBuilder } = require('discord.js');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('addraiddkp')
-        .setDescription('Add DKP to a player')
+        .setDescription('Add DKP to the entiere raid channel')
         .addIntegerOption(option => option.setName('dkp').setDescription('The amount of DKP to add').setRequired(true))
         .addStringOption(option => option.setName('comment').setDescription('Reason').setRequired(true)),
     async execute(interaction, manager, logger) {
@@ -40,7 +40,7 @@ module.exports = {
         await manager.addRaidAttendance(guild, activeRaid, playersInChannel, comment, dkp);
         await interaction.reply(`Added ${dkp} DKP to all players (${playersInChannel.length}) in the raid channel`, { ephemeral: true });
 
-        logger.sendRaidEmebed(guildConfig, activeRaid, playersInChannel, 15105570, `${activeRaid.name}: ${comment}`);
+        logger.sendRaidEmebed(guildConfig, activeRaid, playersInChannel, 15105570, `${activeRaid.name}: ${comment}`, dkp, 'DKP');
     },
     restricted: true,
 };

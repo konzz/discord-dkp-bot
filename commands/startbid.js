@@ -1,7 +1,8 @@
 const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } = require('discord.js');
 const ItemSearch = require('../ItemSearch');
 const Auctioner = require('../Auctioner/Auctioner');
-const uniqid = require('uniqid');
+const { playSound } = require('../utils/Player.js');
+const client = require('../db');
 
 const itemSearch = new ItemSearch();
 
@@ -13,6 +14,7 @@ module.exports = {
     async execute(interaction, manager, logger) {
         const guild = interaction.guild;
         const guildConfig = await manager.getGuildOptions(interaction.guild.id) || {};
+        const raidChannel = guildConfig.raidChannel;
         const search = interaction.options.getString('search');
         const items = await itemSearch.searchItem(search);
 
@@ -71,6 +73,8 @@ module.exports = {
                 const bidTime = guildConfig.bidTime + 5;
                 const startedAuction = await Auctioner.instance.startAuction(item, guild.id, callback, bidTime * 1000);
                 message = await logger.sendAuctionStartEmbed(guildConfig, startedAuction);
+
+                playSound(guild, raidChannel, '../assets/bell.mp3');
             }
         });
     },

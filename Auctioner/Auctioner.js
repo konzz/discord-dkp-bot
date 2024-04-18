@@ -27,6 +27,10 @@ class Auctioner {
         return auction;
     }
 
+    getAuction(auctionId) {
+        return this.auctions.find(auction => auction.id === auctionId);
+    }
+
     async bid(guild, auctionId, amount, player, bidForMain = true) {
         const auction = this.auctions.find(auction => auction.id === auctionId);
         if (!auction) {

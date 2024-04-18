@@ -21,7 +21,6 @@ const auctioner = new Auctioner(dkpManager);
 
 // Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.DirectMessages] });
-
 const worker = new Worker(client, dkpManager);
 const logger = new Logger(client);
 

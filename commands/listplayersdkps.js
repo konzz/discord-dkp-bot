@@ -27,7 +27,7 @@ module.exports = {
         const previousPageButton = new ButtonBuilder().setCustomId('previousPage').setLabel('Previous Page').setDisabled(true).setStyle(ButtonStyle.Primary);
         const nextPageButton = new ButtonBuilder().setCustomId('nextPage').setLabel('Next Page').setStyle(ButtonStyle.Primary);
         if (totalPages === 1) {
-            nextPageButton.setDisabled(true);
+            // nextPageButton.setDisabled(true);
         }
         const row = new ActionRowBuilder().addComponents(previousPageButton, nextPageButton);
 
@@ -43,6 +43,7 @@ module.exports = {
             if (i.customId != 'previousPage' && i.customId != 'nextPage') {
                 return;
             }
+            await i.deferUpdate();
 
             if (i.customId === 'previousPage') {
                 currentPage--;
@@ -70,7 +71,7 @@ module.exports = {
                 name: `${currentPage + 1}/${totalPages}`,
             };
 
-            await i.update({
+            await i.editReply({
                 embeds: [embed],
                 components: [row]
             });

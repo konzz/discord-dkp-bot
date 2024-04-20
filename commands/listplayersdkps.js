@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, Routes, ButtonBuilder, ActionRowBuilder, ButtonStyle } = require('discord.js');
+const uniqid = require('uniqid');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -24,10 +25,11 @@ module.exports = {
             name: `${currentPage + 1}/${totalPages}`,
         };
 
-        const previousPageButton = new ButtonBuilder().setCustomId('previousPage').setLabel('Previous Page').setDisabled(true).setStyle(ButtonStyle.Primary);
-        const nextPageButton = new ButtonBuilder().setCustomId('nextPage').setLabel('Next Page').setStyle(ButtonStyle.Primary);
+        const id = uniqid();
+        const previousPageButton = new ButtonBuilder().setCustomId(`previousPage_${id}`).setLabel('Previous Page').setDisabled(true).setStyle(ButtonStyle.Primary);
+        const nextPageButton = new ButtonBuilder().setCustomId(`nextPage_${id}`).setLabel('Next Page').setStyle(ButtonStyle.Primary);
         if (totalPages === 1) {
-            // nextPageButton.setDisabled(true);
+            nextPageButton.setDisabled(true);
         }
         const row = new ActionRowBuilder().addComponents(previousPageButton, nextPageButton);
 
@@ -37,17 +39,17 @@ module.exports = {
             ephemeral: true
         })
 
-        const collectorFilter = i => i.user.id === interaction.user.id;
+        const collectorFilter = i => i.user.id === interaction.user.id && i.customId.endsWith(id);
         const collector = interaction.channel.createMessageComponentCollector({ time: 120_000, filter: collectorFilter });
         collector.on('collect', async i => {
-            if (i.customId != 'previousPage' && i.customId != 'nextPage') {
+            if (!i.customId.startsWith('previousPage') && !i.customId.startsWith('nextPage')) {
                 return;
             }
             await i.deferUpdate();
 
-            if (i.customId === 'previousPage') {
+            if (i.customId.startsWith('previousPage')) {
                 currentPage--;
-            } else if (i.customId === 'nextPage') {
+            } else if (i.customId.startsWith('nextPage')) {
                 currentPage++;
             }
 

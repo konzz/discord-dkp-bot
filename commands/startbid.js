@@ -19,7 +19,13 @@ module.exports = {
         const search = interaction.options.getString('search');
         const items = await itemSearch.searchItem(search);
 
+        if (!items) {
+            interaction.editReply({ content: 'No items found', ephemeral: true });
+            return;
+        }
+
         await logger.itemsSearchToEmbed(interaction, items, true);
+
         if (items.length > 25) {
             return;
         }

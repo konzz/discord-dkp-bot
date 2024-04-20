@@ -106,23 +106,18 @@ module.exports = class Logger {
 
     async sendItemEmbed(interaction, item, forAuction = true) {
         const row = new ActionRowBuilder();
-            const button = new ButtonBuilder().setCustomId('startbid_' + item.id + '_' + uniqid()).setLabel('Start Auction').setStyle(ButtonStyle.Primary);
-            row.addComponents(button);
-            await interaction.editReply({
-                embeds: [this.itemToEmbed(item)],
-                components: forAuction ? [row] : [],
-                ephemeral: forAuction
-            });
+        const button = new ButtonBuilder().setCustomId('startbid_' + item.id + '_' + uniqid()).setLabel('Start Auction').setStyle(ButtonStyle.Primary);
+        row.addComponents(button);
+        await interaction.editReply({
+            embeds: [this.itemToEmbed(item)],
+            components: forAuction ? [row] : [],
+            ephemeral: forAuction
+        });
     }
 
     async itemsSearchToEmbed(interaction, items, forAuction = true) {
-        if (!items) {
-            interaction.editReply({ content: 'No items found', ephemeral: true });
-            return;
-        }
-
         if (items.length && items.length > 25) {
-            interaction.editReply({embeds: [this.itemsToEmbededList(items)], ephemeral: true});
+            interaction.editReply({ embeds: [this.itemsToEmbededList(items)], ephemeral: true });
             return;
         }
 
@@ -136,8 +131,8 @@ module.exports = class Logger {
             content: 'Search Results',
             components: [...rows],
             ephemeral: forAuction
-        });   
-        
+        });
+
         const collectorFilter = i => i.user.id === interaction.user.id;
         const collector = interaction.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 30_000, filter: collectorFilter });
         collector.on('collect', async i => {

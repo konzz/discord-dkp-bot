@@ -12,6 +12,11 @@ module.exports = {
         const itemSearch = new ItemSearch();
         const items = await itemSearch.searchItem(search);
 
+        if (!items) {
+            interaction.editReply({ content: 'No items found', ephemeral: true });
+            return;
+        }
+
         logger.itemsSearchToEmbed(interaction, items, false);
     },
 };

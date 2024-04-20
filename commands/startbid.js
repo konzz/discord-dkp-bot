@@ -79,12 +79,14 @@ module.exports = {
                         }
                     });
 
-                    confirmWinCollector.on('end', async () => {
+                    confirmWinCollector.on('end', async (_collected, reason) => {
                         confirmButton.setDisabled(true);
-                        confirmButton.setLabel('Time for confirmation ended').setStyle(ButtonStyle.Success);
-                        await message.edit({
-                            components: [row]
-                        });
+                        if (reason === 'time') {
+                            confirmButton.setLabel('Time for confirmation ended').setStyle(ButtonStyle.Success);
+                            await message.edit({
+                                components: [row]
+                            });
+                        }
                     });
                 };
 

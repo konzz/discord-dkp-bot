@@ -20,7 +20,7 @@ module.exports = {
         const items = await itemSearch.searchItem(search);
 
         await logger.itemsSearchToEmbed(interaction, items, true);
-        if(items.length > 25) {
+        if (items.length > 25) {
             return;
         }
 
@@ -71,6 +71,14 @@ module.exports = {
                             });
                             confirmWinCollector.stop();
                         }
+                    });
+
+                    confirmWinCollector.on('end', async () => {
+                        confirmButton.setDisabled(true);
+                        confirmButton.setLabel('Time for confirmation ended').setStyle(ButtonStyle.Success);
+                        await message.edit({
+                            components: [row]
+                        });
                     });
                 };
 

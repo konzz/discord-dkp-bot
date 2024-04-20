@@ -52,30 +52,22 @@ module.exports = class ItemSearch {
 
     processItem(html, id = '', searchUrl = '') {
         const dom = new JSDOM(html);
-
-        const paragraphs = Array.from(dom.window.document.querySelectorAll('.item-stats p')).map(p => p.textContent);
-
-        const brs = Array.from(dom.window.document.querySelectorAll('.item-stats br')).map((br, i) => {
-            const previousSibling = br.previousSibling;
-            const nextSibling = br.nextSibling;
-            if (previousSibling && previousSibling.nodeType === dom.window.Node.TEXT_NODE) {
-                return previousSibling.textContent;
-            }
-            if (nextSibling && nextSibling.nodeType === dom.window.Node.TEXT_NODE) {
-                return nextSibling.textContent;
-            }
-            return null;
-        }).filter(text => text);
-
-        const effect = dom.window.document.querySelector('.item-stats a')?.text;
-
-        const lines = [...paragraphs, ...brs, effect];
-        const uniqueLines = lines.filter((line, index) => lines.indexOf(line) === index);
+        const itemStats = dom.window.document.querySelector('.item-stats');
+        const itemStatsHtml = itemStats.innerHTML;
+        // replace all br tags with newlines
+        let itemStatsText = itemStatsHtml.replace(/<br>/g, '\n');
+        //replace all closing paragraph tags with newlines
+        itemStatsText = itemStatsText.replace(/<p>/g, '\n');
+        itemStatsText = itemStatsText.replace(/<\/p>/g, '\n');
+        //remove all other html tags
+        itemStatsText = itemStatsText.replace(/<[^>]*>/g, '');
+        //remove more than 2 newlines
+        itemStatsText = itemStatsText.replace(/\n{2,}/g, '\n');
 
         const item = {
             id: id.toString(),
             name: dom.window.document.querySelector('.item-info > strong').textContent,
-            data: uniqueLines.join('\n'),
+            data: itemStatsText,
             image: dom.window.document.querySelector('.item-info img').src,
             url: searchUrl
         };

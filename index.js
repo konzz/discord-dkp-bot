@@ -68,6 +68,14 @@ client.on(Events.InteractionCreate, async interaction => {
 		await command.execute(interaction, dkpManager, logger);
 	} catch (error) {
 		console.error(error);
+		if (!fs.existsSync('error.log')) {
+			fs.writeFileSync('error.log', '');
+		}
+		const errorLog = `[${new Date().toLocaleString()}] ${error}\n`;
+		fs.appendFileSync('error.log', errorLog);
+
+
+
 		if (interaction.replied || interaction.deferred) {
 			await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
 		} else {

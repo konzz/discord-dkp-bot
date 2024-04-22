@@ -4,3 +4,4 @@ config.json
 backups/*
 debuger.js
 .vscode/*
+error.log

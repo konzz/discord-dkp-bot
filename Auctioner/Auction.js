@@ -2,13 +2,14 @@ const { Guild } = require('discord.js');
 const uniqid = require('uniqid');
 
 module.exports = class Auction {
-    constructor(guild, item) {
+    constructor(guild, item, minBid = 0) {
         this.item = item;
         this.bids = [];
         this.id = `${guild}_${uniqid()}`;
         this.winner = null;
         this.guild = guild;
         this.auctionActive = true;
+        this.minBid = minBid;
     }
 
     endAuction() {
@@ -52,6 +53,10 @@ module.exports = class Auction {
 
         if (amount > player.current) {
             throw new Error(`DKP - Bot scowls at you. Bid amount is greater than player current DKP (${player.current})`);
+        }
+
+        if (amount < this.minBid) {
+            throw new Error(`DKP - Bot scowls at you. Bid amount is less than the minimum bid (${this.minBid})`);
         }
     }
 

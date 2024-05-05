@@ -151,11 +151,12 @@ module.exports = class Logger {
         });
     };
 
-    async sendAuctionStartEmbed(guildOptions, auction) {
+    async sendAuctionStartEmbed(guildOptions, auction, minBid = 0) {
         const discordGuild = await this.client.guilds.fetch(guildOptions.guild);
         const channel = discordGuild.channels.cache.get(guildOptions.auctionChannel);
-        const raidChanel = guildOptions.raidChannel;
+
         const bidTime = guildOptions.bidTime;
+        const officerRole = guildOptions.adminRole;
         if (!channel) {
             return;
         }
@@ -163,11 +164,13 @@ module.exports = class Logger {
         const button = new ButtonBuilder().setCustomId('bid_' + auction.id).setLabel('I want to bid').setStyle(ButtonStyle.Primary);
         const buttonAlt = new ButtonBuilder().setCustomId('bid_alt' + auction.id).setLabel('Bid for Alter').setStyle(ButtonStyle.Secondary)
         const timeButton = new ButtonBuilder().setCustomId('time_' + auction.id).setLabel(this.formatSeconds(bidTime)).setStyle(ButtonStyle.Secondary).setDisabled(true);
-        const row = new ActionRowBuilder().addComponents(button, buttonAlt, timeButton);
+        const cancelButton = new ButtonBuilder().setCustomId('cancel_' + auction.id).setLabel('Cancel').setStyle(ButtonStyle.Danger);
+        const row = new ActionRowBuilder().addComponents(button, buttonAlt, timeButton, cancelButton);
 
+        const embed = this.itemToEmbed(auction.item, 15105570);
         const message = await channel.send({
-            content: `<#${raidChanel}> Bid started.`,
-            embeds: [this.itemToEmbed(auction.item, 15105570)],
+            content: `Bid started - **${minBid} DKP** minimum bid.`,
+            embeds: [embed],
             components: [row]
         })
 
@@ -222,6 +225,20 @@ module.exports = class Logger {
                         await dmChannel.send(e.message);
                     }
                 });
+            }
+
+            if (i.customId.startsWith('cancel_')) {
+                if (!i.member.roles.cache.has(officerRole)) {
+                    i.reply({ content: 'You dont have permissions, what do you want your tombstone to say?', ephemeral: true });
+                    return;
+                }
+                i.deferUpdate();
+                await Auctioner.instance.cancelAuction(auction.id);
+                cancelButton.setDisabled(true);
+                cancelButton.setLabel('Auction Cancelled');
+                const row = new ActionRowBuilder().addComponents(cancelButton);
+                message.edit({ embeds: [{ ...embed, color: 15277667 }], components: [row] });
+                collector.stop();
             }
         })
 

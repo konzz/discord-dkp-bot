@@ -11,6 +11,7 @@ module.exports = {
         .addNumberOption(option => option.setName('raiddeprecationtime').setDescription('Time to deprecate raids for atendance (1 = 1 days)').setRequired(true))
         .addIntegerOption(option => option.setName('bidtime').setDescription('Bids time duration (1 = 1 second)').setMaxValue(1000).setMinValue(30).setRequired(true))
         .addChannelOption(option => option.setName('secondraidchannel').setDescription('Second raid channel to take attendance').addChannelTypes(ChannelType.GuildVoice))
+        .addIntegerOption(option => option.setName('minbid').setDescription('Minimum bid').setMinValue(0).setRequired(false))
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction, manager) {
         const guild = interaction.guild.id;
@@ -26,7 +27,17 @@ module.exports = {
         const role = interaction.options.getRole('role');
         const raidDeprecationTime = interaction.options.getNumber('raiddeprecationtime') * 86400000;
         const bidTime = interaction.options.getInteger('bidtime');
-        await manager.saveGuildOptions(guild, { raidChannel: raidChannel.id, adminRole: role.id, logChannel: logChannel?.id, raidDeprecationTime, bidTime, auctionChannel: auctionChannel.id, secondRaidChannel: secondRaidChannel?.id });
+        const minBid = interaction.options.getInteger('minbid');
+        await manager.saveGuildOptions(guild, {
+            raidChannel: raidChannel.id,
+            adminRole: role.id,
+            logChannel: logChannel?.id,
+            raidDeprecationTime,
+            bidTime,
+            auctionChannel: auctionChannel.id,
+            secondRaidChannel: secondRaidChannel?.id,
+            minBid
+        });
 
         await interaction.reply({ content: 'Configuration saved', ephemeral: true });
     },

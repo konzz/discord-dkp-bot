@@ -15,6 +15,7 @@ module.exports = {
 		const auctionChannel = guildConfig.auctionChannel ? interaction.guild.channels.cache.get(guildConfig.auctionChannel) : null;
 		const raidDeprecationTime = guildConfig.raidDeprecationTime || 0;
 		const bidTime = guildConfig.bidTime || 0;
+		const minBid = guildConfig.minBid || 0;
 
 		const config = [
 			{ name: 'DKP Officer role', value: adminRole ? adminRole.name : 'Not set' },
@@ -24,6 +25,7 @@ module.exports = {
 			{ name: 'Log channel', value: logChannel ? logChannel.name : 'Not set' },
 			{ name: 'Auction channel', value: auctionChannel ? auctionChannel.name : 'Not set' },
 			{ name: 'Bid time', value: bidTime ? `${bidTime} seconds` : 'Not set' },
+			{ name: 'Minimum bid', value: minBid ? `${minBid} DKP` : 'Not set' },
 		];
 
 		await interaction.reply({ embeds: [{ title: 'Current configuration', fields: config, color: 5763719 }] });

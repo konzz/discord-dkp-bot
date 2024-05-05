@@ -89,7 +89,7 @@ describe('Auctioner', () => {
             await manager.addDKP(guild, player1, 100, 'comment');
 
             const callback = jest.fn();
-            const auction = auctioner.startAuction(item, guild, callback);
+            const auction = auctioner.startAuction(item, guild, callback, 20);
             await expect(async () => await auctioner.bid(guild, auction.id, 0, player1)).rejects.toThrowError('Bid amount must be greater than 0');
             await expect(async () => await auctioner.bid(guild, auction.id, -30, player1)).rejects.toThrowError('Bid amount must be greater than 0');
             await expect(async () => await auctioner.bid(guild, auction.id, 4.5, player1)).rejects.toThrowError('Bid amount must be an integer');
@@ -107,6 +107,17 @@ describe('Auctioner', () => {
             const auction = auctioner.startAuction(item, guild, callback);
             await expect(async () => await auctioner.bid(guild, auction.id, amount, player1))
                 .rejects.toThrowError('Bid amount is greater than player max allowed bid. (50 max bid)');
+        });
+
+        it('should not allow to bid less than min bid allowed', async () => {
+            const item = 'item';
+            const amount = 10;
+            await manager.addDKP(guild, player1, 100, 'comment');
+
+            const callback = jest.fn();
+            const auction = auctioner.startAuction(item, guild, callback, 20);
+            await expect(async () => await auctioner.bid(guild, auction.id, amount, player1))
+                .rejects.toThrowError('Bid amount is less than the minimum bid (20)');
         });
     });
 

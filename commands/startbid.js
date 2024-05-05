@@ -10,7 +10,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('startbid')
         .setDescription('start a bid for an item')
-        .addStringOption(option => option.setName('search').setDescription('Item name or id').setRequired(true)),
+        .addStringOption(option => option.setName('search').setDescription('Item name or id').setRequired(true))
+        .addIntegerOption(option => option.setName('minbid').setDescription('Minimum bid').setRequired(false)),
     async execute(interaction, manager, logger) {
         await interaction.deferReply({ ephemeral: true });
         const guild = interaction.guild;
@@ -18,6 +19,7 @@ module.exports = {
         const raidChannel = guildConfig.raidChannel;
         const search = interaction.options.getString('search');
         const items = await itemSearch.searchItem(search);
+        const minBid = interaction.options.getInteger('minbid') || guildConfig.minBid || 0;
 
         if (!items) {
             interaction.editReply({ content: 'No items found', ephemeral: true });
@@ -39,7 +41,7 @@ module.exports = {
                 //get the channel id
                 const officerRole = guildConfig.adminRole;
                 await i.update({
-                    content: `Bid started!`,
+                    content: `Bid started  (Minimum bid: ${minBid}).`,
                     embeds: [],
                     components: [],
                     ephemeral: false
@@ -91,8 +93,8 @@ module.exports = {
                 };
 
                 const bidTime = guildConfig.bidTime + 5;
-                const startedAuction = await Auctioner.instance.startAuction(item, guild.id, callback, bidTime * 1000);
-                message = await logger.sendAuctionStartEmbed(guildConfig, startedAuction);
+                const startedAuction = await Auctioner.instance.startAuction(item, guild.id, callback, minBid, bidTime * 1000);
+                message = await logger.sendAuctionStartEmbed(guildConfig, startedAuction, minBid);
 
                 playSound(guild, raidChannel, '../assets/bell.mp3');
             }

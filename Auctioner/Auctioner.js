@@ -14,17 +14,28 @@ class Auctioner {
         this.auctions = [];
     }
 
-    startAuction(item, guild, callback, duration = 60000) {
-        const auction = new Auction(guild, item, duration);
+    startAuction(item, guild, callback, minBid = 0, duration = 60000) {
+        const auction = new Auction(guild, item, minBid);
         this.auctions.push(auction);
         setTimeout(async () => {
             const players = await Promise.all(auction.bids.map(async bid => await this.dkpManager.getPlayer(guild, bid.player)));
             auction.endAuction();
             auction.calculateWinner(players);
             callback(auction);
+            this.removeAuction(auction.id);
         }, duration);
 
         return auction;
+    }
+
+    cancelAuction(auctionId) {
+        const auction = this.getAuction(auctionId);
+        auction.endAuction();
+        this.removeAuction(auctionId);
+    }
+
+    removeAuction(auctionId) {
+        this.auctions = this.auctions.filter(auction => auction.id !== auctionId);
     }
 
     getAuction(auctionId) {

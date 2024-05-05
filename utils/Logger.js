@@ -229,7 +229,7 @@ module.exports = class Logger {
 
             if (i.customId.startsWith('cancel_')) {
                 if (!i.member.roles.cache.has(officerRole)) {
-                    i.reply({ content: 'You dont have permissions, what do you want your tombstone to say?', ephemeral: true });
+                    i.reply({ content: ':Prohibited: You dont have permissions, what do you want your tombstone to say?', ephemeral: true });
                     return;
                 }
                 i.deferUpdate();

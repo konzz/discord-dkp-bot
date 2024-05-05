@@ -66,30 +66,32 @@ module.exports = {
                         components: auction.winner ? [row] : []
                     });
 
-                    const collectorFilter = i => i.user.id === interaction.user.id || i.member.roles.cache.has(officerRole);
-                    const confirmWinCollector = message.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 360_000, filter: collectorFilter });
-                    confirmWinCollector.on('collect', async i => {
-                        if (i.customId.startsWith('confirm_' + auction.id)) {
-                            confirmButton.setDisabled(true);
-                            confirmButton.setLabel('Winner Confirmed').setStyle(ButtonStyle.Success);
-                            const raid = await manager.getActiveRaid(guild.id);
-                            await manager.removeDKP(guild.id, auction.winner.player, auction.winner.amount, auction.item.name, raid, auction.item);
-                            await i.update({
-                                components: [row]
-                            });
-                            confirmWinCollector.stop();
-                        }
-                    });
+                    if (auction.winner) {
+                        const collectorFilter = i => i.user.id === interaction.user.id || i.member.roles.cache.has(officerRole);
+                        const confirmWinCollector = message.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 360_000, filter: collectorFilter });
+                        confirmWinCollector.on('collect', async i => {
+                            if (i.customId.startsWith('confirm_' + auction.id)) {
+                                confirmButton.setDisabled(true);
+                                confirmButton.setLabel('Winner Confirmed').setStyle(ButtonStyle.Success);
+                                const raid = await manager.getActiveRaid(guild.id);
+                                await manager.removeDKP(guild.id, auction.winner.player, auction.winner.amount, auction.item.name, raid, auction.item);
+                                await i.update({
+                                    components: [row]
+                                });
+                                confirmWinCollector.stop();
+                            }
+                        });
 
-                    confirmWinCollector.on('end', async (_collected, reason) => {
-                        confirmButton.setDisabled(true);
-                        if (reason === 'time') {
-                            confirmButton.setLabel('Time for confirmation ended').setStyle(ButtonStyle.Success);
-                            await message.edit({
-                                components: [row]
-                            });
-                        }
-                    });
+                        confirmWinCollector.on('end', async (_collected, reason) => {
+                            confirmButton.setDisabled(true);
+                            if (reason === 'time') {
+                                confirmButton.setLabel('Time for confirmation ended').setStyle(ButtonStyle.Success);
+                                await message.edit({
+                                    components: [row]
+                                });
+                            }
+                        });
+                    }
                 };
 
                 const bidTime = guildConfig.bidTime + 5;

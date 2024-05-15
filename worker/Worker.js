@@ -59,7 +59,7 @@ module.exports = class Worker {
                 continue;
             }
 
-            const enoughTimePassedSinceLastTick = raid.attendance[raid.attendance.length - 1].date + raid.tickDuration < new Date().getTime();
+            const enoughTimePassedSinceLastTick = raid.attendance.length === 0 || raid.attendance[raid.attendance.length - 1].date + raid.tickDuration < new Date().getTime();
             if (enoughTimePassedSinceLastTick) {
                 this.tick(guildOptions, raid);
             }

@@ -151,7 +151,7 @@ module.exports = class Logger {
         });
     };
 
-    async sendAuctionStartEmbed(guildOptions, auction, minBid = 0) {
+    async sendAuctionStartEmbed(guildOptions, auction, minBid = 0, numberOfItems = 1) {
         const discordGuild = await this.client.guilds.fetch(guildOptions.guild);
         const channel = discordGuild.channels.cache.get(guildOptions.auctionChannel);
 
@@ -169,7 +169,7 @@ module.exports = class Logger {
 
         const embed = this.itemToEmbed(auction.item, 15105570);
         const message = await channel.send({
-            content: `Bid started - **${minBid} DKP** minimum bid.`,
+            content: `Bid started - **${minBid} DKP** minimum bid. ${numberOfItems > 1 ? `Top **${numberOfItems}** bids win` : ''}`,
             embeds: [embed],
             components: [row]
         })

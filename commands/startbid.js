@@ -6,12 +6,25 @@ const client = require('../db');
 
 const itemSearch = new ItemSearch();
 
+const winnerMessage = (auction) => {
+    if (auction.winner) {
+        return `<@${auction.winner.player}>${auction.winner.bidForMain ? '' : ' - alter'} for ${auction.winner.amount} dkp`;
+    }
+
+    if (auction.winners.length) {
+        return auction.winners.map(winner => `<@${winner.player}>${winner.bidForMain ? '' : ' - alter'} for ${winner.amount} dkp`).join('\n');
+    }
+
+    return 'No winner';
+}
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('startbid')
         .setDescription('start a bid for an item')
         .addStringOption(option => option.setName('search').setDescription('Item name or id').setRequired(true))
-        .addIntegerOption(option => option.setName('minbid').setDescription('Minimum bid').setRequired(false)),
+        .addIntegerOption(option => option.setName('minbid').setDescription('Minimum bid').setMinValue(0).setRequired(false))
+        .addIntegerOption(option => option.setName('numitems').setDescription('Number of items').setMinValue(1).setRequired(false)),
     async execute(interaction, manager, logger) {
         await interaction.deferReply({ ephemeral: true });
         const guild = interaction.guild;
@@ -20,6 +33,7 @@ module.exports = {
         const search = interaction.options.getString('search');
         const items = await itemSearch.searchItem(search);
         const minBid = interaction.options.getInteger('minbid') || guildConfig.minBid || 0;
+        const numberOfItems = interaction.options.getInteger('numitems') || 1;
 
         if (!items) {
             interaction.editReply({ content: 'No items found', ephemeral: true });
@@ -41,7 +55,7 @@ module.exports = {
                 //get the channel id
                 const officerRole = guildConfig.adminRole;
                 await i.update({
-                    content: `Bid started  (Minimum bid: ${minBid}).`,
+                    content: `Bid started`,
                     embeds: [],
                     components: [],
                     ephemeral: false
@@ -51,30 +65,36 @@ module.exports = {
                 let message;
                 const callback = async (auction) => {
                     const embed = logger.itemToEmbed(auction.item, 5763719);
-                    const alterBid = auction.winner && !auction.winner.bidForMain;
                     const row = new ActionRowBuilder();
-                    const confirmButton = new ButtonBuilder().setCustomId('confirm_' + auction.id).setLabel('Confirm Winner').setStyle(ButtonStyle.Primary);
+                    const confirmButton = new ButtonBuilder().setCustomId('confirm_' + auction.id).setLabel('Confirm Winner/s').setStyle(ButtonStyle.Primary);
                     row.addComponents(confirmButton);
-                    const winnerMessage = auction.winner ? `<@${auction.winner.player}>${alterBid ? ' - alter' : ''} for ${auction.winner.amount} dkp` : 'No winner';
                     embed.fields = [
-                        { name: 'Winner', value: winnerMessage },
+                        { name: 'Winner/s', value: winnerMessage(auction) },
                         { name: 'Bids', value: auction.bids.sort((a, b) => b.amount - a.amount).map(bid => `- ${bid.amount}${bid.bidForMain ? '' : ' - alter'}`).join('\n') }
                     ];
 
                     await message.edit({
                         embeds: [embed],
-                        components: auction.winner ? [row] : []
+                        components: auction.winner || auction.winners.length ? [row] : []
                     });
 
-                    if (auction.winner) {
+                    if (auction.winner || auction.winners.length > 0) {
                         const collectorFilter = i => i.user.id === interaction.user.id || i.member.roles.cache.has(officerRole);
                         const confirmWinCollector = message.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 360_000, filter: collectorFilter });
                         confirmWinCollector.on('collect', async i => {
                             if (i.customId.startsWith('confirm_' + auction.id)) {
                                 confirmButton.setDisabled(true);
-                                confirmButton.setLabel('Winner Confirmed').setStyle(ButtonStyle.Success);
+                                confirmButton.setLabel('Winner/s Confirmed').setStyle(ButtonStyle.Success);
                                 const raid = await manager.getActiveRaid(guild.id);
-                                await manager.removeDKP(guild.id, auction.winner.player, auction.winner.amount, auction.item.name, raid, auction.item);
+                                if (auction.winner) {
+                                    await manager.removeDKP(guild.id, auction.winner.player, auction.winner.amount, auction.item.name, raid, auction.item);
+                                }
+                                else {
+                                    auction.winners.forEach(async winner => {
+                                        await manager.removeDKP(guild.id, winner.player, winner.amount, auction.item.name, raid, auction.item);
+                                    });
+                                }
+
                                 await i.update({
                                     components: [row]
                                 });
@@ -95,8 +115,8 @@ module.exports = {
                 };
 
                 const bidTime = guildConfig.bidTime + 5;
-                const startedAuction = await Auctioner.instance.startAuction(item, guild.id, callback, minBid, bidTime * 1000);
-                message = await logger.sendAuctionStartEmbed(guildConfig, startedAuction, minBid);
+                const startedAuction = await Auctioner.instance.startAuction(item, guild.id, callback, minBid, bidTime * 1000, numberOfItems);
+                message = await logger.sendAuctionStartEmbed(guildConfig, startedAuction, minBid, numberOfItems);
 
                 playSound(guild, raidChannel, '../assets/bell.mp3');
             }

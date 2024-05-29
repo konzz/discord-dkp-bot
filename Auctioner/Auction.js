@@ -2,14 +2,16 @@ const { Guild } = require('discord.js');
 const uniqid = require('uniqid');
 
 module.exports = class Auction {
-    constructor(guild, item, minBid = 0) {
+    constructor(guild, item, minBid = 0, numberOfItems = 1) {
         this.item = item;
         this.bids = [];
         this.id = `${guild}_${uniqid()}`;
         this.winner = null;
+        this.winners = [];
         this.guild = guild;
         this.auctionActive = true;
         this.minBid = minBid;
+        this.numberOfItems = numberOfItems === 0 ? 1 : numberOfItems;
     }
 
     endAuction() {
@@ -60,16 +62,20 @@ module.exports = class Auction {
         }
     }
 
-    getWinner(bids) {
-        let validBids = bids.filter(bid => bid.valid);
-        if (validBids.some(bid => bid.bidForMain)) {
-            validBids = validBids.filter(bid => bid.bidForMain);
+    getWinners(bids, numberOfWinners = 1) {
+        const bidsSortByAmountAndType = bids.sort((a, b) => b.amount - a.amount && b.bidForMain - a.bidForMain);
+        const topAmmountBidders = bidsSortByAmountAndType.filter(bid => bid.amount >= bidsSortByAmountAndType[numberOfWinners - 1].amount);
+
+        const topBiddersSortByAttendance = topAmmountBidders.sort((a, b) => b.attendance - a.attendance);
+        const topAttendanceBidders = topBiddersSortByAttendance.filter(bid => bid.attendance >= topBiddersSortByAttendance[numberOfWinners - 1].attendance);
+
+        const numberOfBidsForMain = topAttendanceBidders.filter(bid => bid.bidForMain).length;
+        console.log('topBiddersSortByAttendance', topAttendanceBidders);
+        if (numberOfBidsForMain >= numberOfWinners) {
+            return topAttendanceBidders.filter(bid => bid.bidForMain);
         }
 
-        const bidsSortByAmount = validBids.sort((a, b) => b.amount - a.amount);
-        const topAmmountBidders = bidsSortByAmount.filter(bid => bid.amount === bidsSortByAmount[0].amount);
-        const topBiddersSortByAttendance = topAmmountBidders.sort((a, b) => b.attendance - a.attendance);
-        return topBiddersSortByAttendance.filter(bid => bid.attendance === topBiddersSortByAttendance[0].attendance);
+        return topAttendanceBidders;
     }
 
     calculateWinner(playersList) {
@@ -87,7 +93,19 @@ module.exports = class Auction {
             }
         });
 
-        const winners = this.getWinner(this.bids);
+        this.bids = this.bids.filter(bid => bid.valid);
+
+        if (this.bids.length === 0) {
+            return null;
+        }
+
+        const amountOfWinnersNeeded = this.numberOfItems > this.bids.length ? this.bids.length : this.numberOfItems;
+        const winners = this.getWinners(this.bids, amountOfWinnersNeeded);
+
+        if (this.numberOfItems > 1) {
+            this.winners = winners.slice(0, this.numberOfItems);
+            return this.winners;
+        }
 
         const winner = winners[Math.floor(Math.random() * winners.length)];
         this.winner = winner;

@@ -105,6 +105,30 @@ describe('Auctioner', () => {
             await expect(async () => await auctioner.bid(guild, auction.id, amount, player1))
                 .rejects.toThrowError('Bid amount is less than the minimum bid (20)');
         });
+
+        it('should allow to change bids', async () => {
+            const item = 'item';
+            await manager.addDKP(guild, player1, 100, 'comment');
+            await manager.addDKP(guild, player2, 100, 'comment');
+            await manager.addDKP(guild, player3, 100, 'comment');
+
+            const callback = jest.fn();
+            const auction = auctioner.startAuction(item, guild, callback);
+            await auctioner.bid(guild, auction.id, 30, player1);
+            await auctioner.bid(guild, auction.id, 20, player2);
+            await auctioner.bid(guild, auction.id, 40, player3);
+            await auctioner.bid(guild, auction.id, 10, player1);
+            await auctioner.bid(guild, auction.id, 40, player3, false);
+            await endSetTimeout();
+
+            expect(auction.bids).toEqual([
+                { player: player1, amount: 10, attendance: 100, valid: true, bidForMain: true },
+                { player: player2, amount: 20, attendance: 100, valid: true, bidForMain: true },
+                { player: player3, amount: 40, attendance: 100, valid: true, bidForMain: false }
+            ]);
+
+            expect(auction.winner.player).toBe(player2);
+        });
     });
 
     describe('calculate winner', () => {
@@ -218,16 +242,29 @@ describe('Auctioner', () => {
             await manager.addDKP(guild, player2, 100, 'comment');
             await manager.addDKP(guild, player3, 100, 'comment');
 
+            const date = new Date().getTime();
+            await manager.raids.insertOne({
+                guild,
+                name: 'raid',
+                date: date + 500000,
+                attendance: [
+                    { players: [player1, player2, player3], comment: 'Start', date, dkps: 1 },
+                    { players: [player2], comment: 'Tick', date, dkps: 1 }
+                ],
+                active: false,
+                deprecated: false,
+            });
+
             const callback = jest.fn();
             const auction = auctioner.startAuction(item, guild, callback, 0, 600, 2);
+            await auctioner.bid(guild, auction.id, 30, player2, false);
             await auctioner.bid(guild, auction.id, 20, player1);
-            await auctioner.bid(guild, auction.id, 10, player2, false);
             await auctioner.bid(guild, auction.id, 5, player3);
             await endSetTimeout();
 
             expect(auction.winners).toEqual([
-                { player: player1, amount: 20, bidForMain: true, attendance: 100, valid: true },
-                { player: player3, amount: 5, bidForMain: true, attendance: 100, valid: true }
+                { player: player1, amount: 20, bidForMain: true, attendance: 50, valid: true },
+                { player: player3, amount: 5, bidForMain: true, attendance: 50, valid: true }
             ]);
             expect(auction.numberOfItems).toBe(2);
             expect(auction.bids.length).toBe(3);

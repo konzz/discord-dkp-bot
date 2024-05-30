@@ -62,20 +62,33 @@ module.exports = class Auction {
         }
     }
 
+    getTopBids(bids, amount) {
+        if (bids.length === 0) {
+            return [];
+        }
+        const minBidToWin = bids.length > amount ? bids[amount - 1].amount : bids[bids.length - 1].amount;
+        const filteredbids = bids.filter((bid) => bid.amount >= minBidToWin);
+        const bidsByAttendance = filteredbids.sort((a, b) => b.attendance - a.attendance);
+        const minAttendanceToWin = bidsByAttendance.length > amount ? bidsByAttendance[amount - 1].attendance : bidsByAttendance[bidsByAttendance.length - 1].attendance;
+        const filteredBidsByAttendance = bidsByAttendance.filter((bid) => bid.attendance >= minAttendanceToWin);
+
+        return filteredBidsByAttendance;
+    }
+
     getWinners(bids, numberOfWinners = 1) {
-        const bidsSortByAmountAndType = bids.sort((a, b) => b.amount - a.amount && b.bidForMain - a.bidForMain);
-        const topAmmountBidders = bidsSortByAmountAndType.filter(bid => bid.amount >= bidsSortByAmountAndType[numberOfWinners - 1].amount);
+        const mainBids = bids.filter(bid => bid.bidForMain);
+        const altBids = bids.filter(bid => !bid.bidForMain);
 
-        const topBiddersSortByAttendance = topAmmountBidders.sort((a, b) => b.attendance - a.attendance);
-        const topAttendanceBidders = topBiddersSortByAttendance.filter(bid => bid.attendance >= topBiddersSortByAttendance[numberOfWinners - 1].attendance);
+        const topMainBids = this.getTopBids(mainBids, numberOfWinners);
+        const topAltBids = this.getTopBids(altBids, numberOfWinners);
 
-        const numberOfBidsForMain = topAttendanceBidders.filter(bid => bid.bidForMain).length;
-        console.log('topBiddersSortByAttendance', topAttendanceBidders);
-        if (numberOfBidsForMain >= numberOfWinners) {
-            return topAttendanceBidders.filter(bid => bid.bidForMain);
+        const winners = topMainBids;
+
+        if (winners.length < numberOfWinners) {
+            winners.push(...topAltBids.slice(0, numberOfWinners - winners.length));
         }
 
-        return topAttendanceBidders;
+        return winners;
     }
 
     calculateWinner(playersList) {

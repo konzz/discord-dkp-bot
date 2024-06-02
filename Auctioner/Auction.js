@@ -66,8 +66,9 @@ module.exports = class Auction {
         if (bids.length === 0) {
             return [];
         }
-        const minBidToWin = bids.length > amount ? bids[amount - 1].amount : bids[bids.length - 1].amount;
-        const filteredbids = bids.filter((bid) => bid.amount >= minBidToWin);
+        const bidsSorted = bids.sort((a, b) => b.amount - a.amount);
+        const minBidToWin = bidsSorted.length > amount ? bidsSorted[amount - 1].amount : bidsSorted[bidsSorted.length - 1].amount;
+        const filteredbids = bidsSorted.filter((bid) => bid.amount >= minBidToWin);
         const bidsByAttendance = filteredbids.sort((a, b) => b.attendance - a.attendance);
         const minAttendanceToWin = bidsByAttendance.length > amount ? bidsByAttendance[amount - 1].attendance : bidsByAttendance[bidsByAttendance.length - 1].attendance;
         const filteredBidsByAttendance = bidsByAttendance.filter((bid) => bid.attendance >= minAttendanceToWin);
@@ -82,6 +83,7 @@ module.exports = class Auction {
         const topMainBids = this.getTopBids(mainBids, numberOfWinners);
         const topAltBids = this.getTopBids(altBids, numberOfWinners);
 
+
         const winners = topMainBids;
 
         if (winners.length < numberOfWinners) {
@@ -95,7 +97,6 @@ module.exports = class Auction {
         if (this.bids.length === 0) {
             return null;
         }
-
         this.bids = this.bids.map(bid => {
             try {
                 this.validateBidAmount(bid.amount, playersList.find(player => player.player === bid.player));

@@ -10,9 +10,9 @@ describe('Auctioner', () => {
     let auctioner;
 
     const guild = 'unaQue?';
-    const player1 = 'Galandracano';
-    const player2 = 'Soacds';
-    const player3 = 'Scrylex';
+    const player1 = 'player1';
+    const player2 = 'player2';
+    const player3 = 'player3';
 
     let endSetTimeout;
     jest.spyOn(global, 'setTimeout').mockImplementation((cb) => {
@@ -112,6 +112,19 @@ describe('Auctioner', () => {
             await manager.addDKP(guild, player2, 100, 'comment');
             await manager.addDKP(guild, player3, 100, 'comment');
 
+            const date = new Date().getTime();
+            await manager.raids.insertOne({
+                guild,
+                name: 'raid',
+                date: date + 500000,
+                attendance: [
+                    { players: [player1, player2, player3], comment: 'Start', date, dkps: 1 },
+                    { players: [player1], comment: 'Tick', date, dkps: 1 }
+                ],
+                active: false,
+                deprecated: false,
+            });
+
             const callback = jest.fn();
             const auction = auctioner.startAuction(item, guild, callback);
             await auctioner.bid(guild, auction.id, 30, player1);
@@ -123,8 +136,8 @@ describe('Auctioner', () => {
 
             expect(auction.bids).toEqual([
                 { player: player1, amount: 10, attendance: 100, valid: true, bidForMain: true },
-                { player: player2, amount: 20, attendance: 100, valid: true, bidForMain: true },
-                { player: player3, amount: 40, attendance: 100, valid: true, bidForMain: false }
+                { player: player2, amount: 20, attendance: 50, valid: true, bidForMain: true },
+                { player: player3, amount: 40, attendance: 50, valid: true, bidForMain: false }
             ]);
 
             expect(auction.winner.player).toBe(player2);
@@ -138,10 +151,23 @@ describe('Auctioner', () => {
             await manager.addDKP(guild, player2, 100, 'comment');
             await manager.addDKP(guild, player3, 100, 'comment');
 
+            const date = new Date().getTime();
+            await manager.raids.insertOne({
+                guild,
+                name: 'raid',
+                date: date + 500000,
+                attendance: [
+                    { players: [player1, player2, player2], comment: 'Start', date, dkps: 1 },
+                    { players: [player2, player3], comment: 'Tick', date, dkps: 1 }
+                ],
+                active: false,
+                deprecated: false,
+            });
+
             const callback = jest.fn();
             const auction = auctioner.startAuction(item, guild, callback);
-            await auctioner.bid(guild, auction.id, 20, player1);
             await auctioner.bid(guild, auction.id, 10, player2);
+            await auctioner.bid(guild, auction.id, 20, player1);
             await auctioner.bid(guild, auction.id, 5, player3);
             await endSetTimeout();
 
@@ -150,7 +176,7 @@ describe('Auctioner', () => {
 
         it('should use attendance when bids are equal', async () => {
             const item = 'item';
-            await manager.addDKP(guild, player1, 100, 'comment');
+            await manager.addDKP(guild, player1, 50, 'comment');
             await manager.addDKP(guild, player2, 100, 'comment');
             await manager.addDKP(guild, player3, 100, 'comment');
 
@@ -204,8 +230,8 @@ describe('Auctioner', () => {
 
             const callback = jest.fn();
             const auction = auctioner.startAuction(item, guild, callback, 0, 600, 2);
-            await auctioner.bid(guild, auction.id, 20, player1);
             await auctioner.bid(guild, auction.id, 10, player2);
+            await auctioner.bid(guild, auction.id, 20, player1);
             await auctioner.bid(guild, auction.id, 5, player3);
             await endSetTimeout();
 

@@ -24,14 +24,14 @@ module.exports = {
         .setDescription('Create a backup of the current DKP state')
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction, manager) {
-        interaction.deferReply();
+        await interaction.deferReply();
         const guild = interaction.guild.id;
         try {
             const playersFile = await getBackUpFile(manager, guild, 'players');
             const raidsFile = await getBackUpFile(manager, guild, 'raids');
-            await interaction.reply({ content: `Backup created ${new Date().toLocaleString()}`, files: [playersFile, raidsFile] });
+            await interaction.editReply({ content: `Backup created ${new Date().toLocaleString()}`, files: [playersFile, raidsFile] });
         } catch (error) {
-            await interaction.reply({ content: `Error creating backup ${error}`, ephemeral: true });
+            await interaction.editReply({ content: `Error creating backup ${error}`, ephemeral: true });
         }
     },
 };

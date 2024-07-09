@@ -108,7 +108,7 @@ module.exports = class Logger {
         const row = new ActionRowBuilder();
         const button = new ButtonBuilder().setCustomId('startbid_' + item.id + '_' + uniqid()).setLabel('Start Auction').setStyle(ButtonStyle.Primary);
         row.addComponents(button);
-        await interaction.editReply({
+        return interaction.editReply({
             embeds: [this.itemToEmbed(item)],
             components: forAuction ? [row] : [],
             ephemeral: forAuction
@@ -116,15 +116,12 @@ module.exports = class Logger {
     }
 
     async itemsSearchToEmbed(interaction, items, forAuction = true) {
-        if (items.length && items.length > 25) {
-            interaction.editReply({ embeds: [this.itemsToEmbededList(items)], ephemeral: true });
-            return;
-        }
-
-        if (!Array.isArray(items)) {
-            await this.sendItemEmbed(interaction, items, forAuction);
-            return;
-        }
+        let resolve;
+        let reject;
+        const result = new Promise((_resolve, _reject) => {
+            resolve = _resolve;
+            reject = _reject;
+        });
 
         const rows = this.itemsToButtonRows(items);
         await interaction.editReply({
@@ -138,17 +135,18 @@ module.exports = class Logger {
         collector.on('collect', async i => {
             if (i.customId.startsWith('selectitem_')) {
                 const itemId = i.customId.split('_')[1];
-                const item = await itemSearch.searchItem(itemId);
-                await this.sendItemEmbed(interaction, item, forAuction);
-                collector.stop();
+                resolve(itemId);
             }
         });
 
         collector.on('end', async (_collected, reason) => {
             if (reason === 'time') {
                 await interaction.editReply({ content: 'Time out', components: [] });
+                resolve()
             }
         });
+
+        return result;
     };
 
     async sendAuctionStartEmbed(guildOptions, auction, minBid = 0, numberOfItems = 1) {

@@ -33,14 +33,14 @@ module.exports = {
         }
         const row = new ActionRowBuilder().addComponents(previousPageButton, nextPageButton);
 
-        await interaction.editReply({
+        const message = await interaction.editReply({
             embeds: [embed],
             components: [row],
             ephemeral: true
         })
 
         const collectorFilter = i => i.user.id === interaction.user.id && i.customId.endsWith(id);
-        const collector = interaction.channel.createMessageComponentCollector({ time: 120_000, filter: collectorFilter });
+        const collector = message.createMessageComponentCollector({ time: 120_000, filter: collectorFilter });
         collector.on('collect', async i => {
             if (!i.customId.startsWith('previousPage') && !i.customId.startsWith('nextPage')) {
                 return;

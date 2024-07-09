@@ -40,19 +40,28 @@ module.exports = {
             return;
         }
 
-        await logger.itemsSearchToEmbed(interaction, items, true);
-
-        if (items.length > 25) {
+        if (items.length && items.length > 25) {
+            interaction.editReply({ embeds: [this.itemsToEmbededList(items)], ephemeral: true });
             return;
         }
 
+        let item;
+        if (!Array.isArray(items)) {
+            item = items;
+        } else {
+            const itemId = await logger.itemsSearchToEmbed(interaction, items, true);
+            if (!itemId) {
+                return;
+            }
+            item = await itemSearch.searchItem(itemId);
+        }
+
+        const startAuctionMessage = await logger.sendItemEmbed(interaction, item, true);
+
         const collectorFilter = i => i.user.id === interaction.user.id;
-        const collector = interaction.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 30_000, filter: collectorFilter });
+        const collector = startAuctionMessage.createMessageComponentCollector({ componentType: ComponentType.Button, time: 30_000, filter: collectorFilter });
         collector.on('collect', async i => {
-            if (i.customId.startsWith('startbid_')) {
-                const itemId = i.customId.split('_')[1];
-                const item = await itemSearch.searchItem(itemId);
-                //get the channel id
+            if (i.customId.startsWith(`startbid_`)) {
                 const officerRole = guildConfig.adminRole;
                 await i.update({
                     content: `Bid started`,
@@ -80,7 +89,7 @@ module.exports = {
 
                     if (auction.winner || auction.winners.length > 0) {
                         const collectorFilter = i => i.user.id === interaction.user.id || i.member.roles.cache.has(officerRole);
-                        const confirmWinCollector = message.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 360_000, filter: collectorFilter });
+                        const confirmWinCollector = message.createMessageComponentCollector({ componentType: ComponentType.Button, time: 360_000, filter: collectorFilter });
                         confirmWinCollector.on('collect', async i => {
                             if (i.customId.startsWith('confirm_' + auction.id)) {
                                 confirmButton.setDisabled(true);

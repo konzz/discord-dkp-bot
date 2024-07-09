@@ -100,12 +100,12 @@ client.once(Events.ClientReady, async c => {
 
 			// The put method is used to fully refresh all commands in the guild with the current set
 			await rest.put(Routes.applicationGuildCommands(clientId, guild.id), { body: [] })
-			/*const data = await rest.put(
+			const data = await rest.put(
 				Routes.applicationGuildCommands(clientId, guild.id),
 				{ body: commands },
 			);
 
-			console.log(`Successfully reloaded ${data.length} application (/) commands for guild: ${guild.name} (${guild.id}).`);*/
+			console.log(`Successfully reloaded ${data.length} application (/) commands for guild: ${guild.name} (${guild.id}).`);
 		});
 
 

@@ -163,6 +163,14 @@ module.exports = class DKPManager {
         return { ...player, attendance };
     }
 
+    async getPlayerDKP(guild, player) {
+        const playerData = await this.players.findOne({ player, guild });
+        if (!playerData) {
+            throw new Error('Player not found');
+        }
+        return playerData.current;
+    }
+
     async getPlayer(guild, playerId) {
         const raids = await this.raids.find({ guild, deprecated: false }).toArray();
         const player = await this.players.findOne({ player: playerId, guild });

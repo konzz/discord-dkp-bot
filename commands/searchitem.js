@@ -1,3 +1,4 @@
+require('dotenv').config()
 const { SlashCommandBuilder } = require('discord.js');
 const ItemSearch = require('../ItemSearch');
 
@@ -9,6 +10,11 @@ module.exports = {
     async execute(interaction, manager, logger) {
         await interaction.deferReply();
         const search = interaction.options.getString('search');
+
+        if (process.env.LOG_LEVEL === 'DEBUG') {
+            console.log(`Executed searchitem command with search: ${search}`);
+        }
+
         const itemSearch = new ItemSearch();
         const items = await itemSearch.searchItem(search);
 

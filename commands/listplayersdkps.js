@@ -1,3 +1,4 @@
+require('dotenv').config()
 const { SlashCommandBuilder, Routes, ButtonBuilder, ActionRowBuilder, ButtonStyle } = require('discord.js');
 const uniqid = require('uniqid');
 
@@ -7,6 +8,9 @@ module.exports = {
         .setDescription('List all players and their current DKP'),
     async execute(interaction, manager, logger) {
         await interaction.deferReply({ ephemeral: true });
+        if (process.env.LOG_LEVEL === 'DEBUG') {
+            console.log(`Executed listplayersdkps command`);
+        }
         const guild = interaction.guild.id;
         let currentPage = 0;
         const pageSize = 10;
@@ -66,7 +70,6 @@ module.exports = {
             }
 
             const { players } = await manager.listPlayers(guild, currentPage, pageSize);
-            const currentPlayer = await manager.getPlayer(guild, interaction.user.id);
 
             const embed = logger.playerListToEmbed(players, currentPlayer, currentPage, pageSize);
             embed.author = {

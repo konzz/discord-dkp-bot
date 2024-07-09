@@ -7,6 +7,7 @@ const Worker = require('./worker/Worker.js');
 const Logger = require('./utils/Logger');
 const Auctioner = require('./Auctioner/Auctioner.js');
 
+
 const dbClient = require('./db.js');
 try {
 	dbClient.connect();
@@ -85,14 +86,28 @@ client.on(Events.InteractionCreate, async interaction => {
 });
 
 client.once(Events.ClientReady, async c => {
-
 	try {
 		console.log(`Started refreshing ${commands.length} application commands.`);
 
 		// The put method is used to fully refresh all commands in the guild with the current set
 		const rest = new REST().setToken(token);
+		//await rest.put(Routes.applicationCommands(clientId), { body: [] });
 		await rest.put(Routes.applicationCommands(clientId), { body: commands })
 		console.log(`Successfully reloaded application commands.`);
+
+		c.guilds.cache.forEach(async guild => {
+			console.log(`Started refreshing ${commands.length} application (/) commands for guild: ${guild.name} (${guild.id}).`);
+
+			// The put method is used to fully refresh all commands in the guild with the current set
+			await rest.put(Routes.applicationGuildCommands(clientId, guild.id), { body: [] })
+			/*const data = await rest.put(
+				Routes.applicationGuildCommands(clientId, guild.id),
+				{ body: commands },
+			);
+
+			console.log(`Successfully reloaded ${data.length} application (/) commands for guild: ${guild.name} (${guild.id}).`);*/
+		});
+
 
 	} catch (error) {
 		// And of course, make sure you catch and log any errors!
@@ -104,3 +119,4 @@ client.once(Events.ClientReady, async c => {
 });
 
 client.login(token);
+

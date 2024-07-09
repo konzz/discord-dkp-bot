@@ -18,7 +18,6 @@ module.exports = {
             console.log(`Executed adddkp command with player: ${player.id}, dkp: ${dkp}, comment: ${comment}`);
         }
 
-
         manager.addDKP(guild, player.id, dkp, comment);
         await interaction.reply(`Added ${dkp} DKPs to <@${player.id}>. ${comment}`);
     },

@@ -1,3 +1,4 @@
+require('dotenv').config()
 const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
@@ -12,8 +13,13 @@ module.exports = {
         const player = interaction.options.getUser('player');
         const dkp = interaction.options.getInteger('dkp');
         const comment = interaction.options.getString('comment');
-        manager.addDKP(guild, player.id, dkp, comment);
 
+        if (process.env.LOG_LEVEL === 'DEBUG') {
+            console.log(`Executed adddkp command with player: ${player.id}, dkp: ${dkp}, comment: ${comment}`);
+        }
+
+
+        manager.addDKP(guild, player.id, dkp, comment);
         await interaction.reply(`Added ${dkp} DKPs to <@${player.id}>. ${comment}`);
     },
     restricted: true,

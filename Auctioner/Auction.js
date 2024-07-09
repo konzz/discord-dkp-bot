@@ -1,4 +1,4 @@
-const { Guild } = require('discord.js');
+require('dotenv').config()
 const uniqid = require('uniqid');
 
 module.exports = class Auction {
@@ -94,6 +94,11 @@ module.exports = class Auction {
     }
 
     calculateWinner(playersList) {
+        if (process.env.LOG_LEVEL === 'DEBUG') {
+            console.log('--- Calculating winner ---');
+            console.log(this.bids);
+            console.log('--------------------------')
+        }
         if (this.bids.length === 0) {
             return null;
         }

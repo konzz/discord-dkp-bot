@@ -24,6 +24,7 @@ module.exports = {
         .setDescription('Create a backup of the current DKP state')
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction, manager) {
+        interaction.deferReply();
         const guild = interaction.guild.id;
         try {
             const playersFile = await getBackUpFile(manager, guild, 'players');

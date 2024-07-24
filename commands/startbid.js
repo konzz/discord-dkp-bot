@@ -41,7 +41,7 @@ module.exports = {
         }
 
         if (items.length && items.length > 25) {
-            interaction.editReply({ embeds: [this.itemsToEmbededList(items)], ephemeral: true });
+            interaction.editReply({ embeds: [logger.itemsToEmbededList(items)], ephemeral: true });
             return;
         }
 

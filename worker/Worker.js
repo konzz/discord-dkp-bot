@@ -70,7 +70,6 @@ module.exports = class Worker {
     async runFastTasks() {
         const guilds = await this.manager.guildOptions.find({}).toArray();
         await this.processRaids(guilds);
-
     }
 
     async runSlowTasks() {

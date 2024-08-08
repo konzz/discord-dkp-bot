@@ -90,4 +90,5 @@ module.exports = {
             });
         });
     },
+    restricted: true,
 };

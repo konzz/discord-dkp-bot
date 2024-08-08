@@ -12,7 +12,6 @@ module.exports = {
         const name = interaction.options.getString('name');
         const dkpsPerTick = interaction.options.getInteger('dkpspertick');
         const tickDuration = interaction.options.getNumber('tickduration') * 6 * 60000;
-
         const guildConfig = await manager.getGuildOptions(interaction.guild.id) || {};
         const raidChannel = guildConfig.raidChannel;
 

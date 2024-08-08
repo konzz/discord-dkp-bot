@@ -33,6 +33,10 @@ module.exports = {
             if (player && entry.item) {
                 return `<t:${Math.floor(entry.date / 1000)}:t> *${player}* won [${entry.item.name}](${entry.item.url}) for ${Math.abs(entry.dkps)} dkps`;
             }
+            if (player) {
+                return `<t:${Math.floor(entry.date / 1000)}:t> *${player}* ${entry.dkps > 0 ? 'gained' : 'lost'} ${Math.abs(entry.dkps)} dkps *${entry.comment}*`;
+            }
+
             return `<t:${Math.floor(entry.date / 1000)}:t> *${entry.comment}*`;
         }));
 

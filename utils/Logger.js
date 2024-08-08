@@ -69,17 +69,27 @@ module.exports = class Logger {
         }
         const now = new Date().getTime();
 
-        await logChannel
-            .send({
-                embeds: [{
-                    color: 15277667,
-                    title: `${raid.name} raid ended`,
-                    description: log.join('\n'),
-                    fields: [
-                        { name: "Date", value: `<t:${Math.floor(now / 1000)}:d> <t:${Math.floor(now / 1000)}:t>` },
-                    ]
-                }]
-            })
+        const maxLogChunkSize = 35;
+        const logChunks = [];
+        while (log.length) {
+            logChunks.push(log.splice(0, maxLogChunkSize));
+        }
+
+        for (const logChunk of logChunks) {
+            const logIndex = logChunks.indexOf(logChunk);
+            const title = `${raid.name} raid ended - *${logIndex + 1} of ${logChunks.length}*`;
+            await logChannel
+                .send({
+                    embeds: [{
+                        color: 15277667,
+                        title: title,
+                        description: logChunk.join('\n'),
+                        fields: [
+                            { name: "Date", value: `<t:${Math.floor(now / 1000)}:d> <t:${Math.floor(now / 1000)}:t>` },
+                        ]
+                    }]
+                })
+        }
     }
 
     formatSeconds(seconds) {

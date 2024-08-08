@@ -12,6 +12,11 @@ module.exports = {
             console.log(`Executed listplayersdkps command`);
         }
         const guild = interaction.guild.id;
+        const alreadyActiveRaid = await manager.getActiveRaid(guild);
+        if (alreadyActiveRaid) {
+            await interaction.editReply({ content: `:prohibited: DKP Bot scowls at you. This command is forbiden during raids.`, ephemeral: true });
+            return;
+        }
         let currentPage = 0;
         const pageSize = 10;
         let { players, total } = await manager.listPlayers(guild, currentPage, pageSize);
@@ -90,5 +95,4 @@ module.exports = {
             });
         });
     },
-    restricted: true,
 };

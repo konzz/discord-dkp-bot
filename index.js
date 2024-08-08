@@ -62,6 +62,9 @@ client.on(Events.InteractionCreate, async interaction => {
 		if (command.restricted) {
 			const guildConfig = await dkpManager.getGuildOptions(interaction.guild.id);
 			if (!guildConfig || !interaction.member.roles.cache.has(guildConfig.adminRole)) {
+				const userId = interaction.user.id;
+				const logChannel = interaction.guild.channels.cache.get(guildConfig.logChannel);
+				logChannel.send(`<@${userId}> You don't have the permission to use this command ` + "`/" + interaction.commandName + "`");
 				interaction.reply(`You don't have the permission to use this command`);
 				return;
 			}

@@ -262,6 +262,39 @@ describe('Auctioner', () => {
             expect(auction.bids.length).toBe(1);
         });
 
+        it('should calculate the winners for multiple items when some of them are the same bid', async () => {
+            const item = 'item';
+            await manager.addDKP(guild, player1, 100, 'comment');
+            await manager.addDKP(guild, player2, 100, 'comment');
+            await manager.addDKP(guild, player3, 100, 'comment');
+
+            const date = new Date().getTime();
+            await manager.raids.insertOne({
+                guild,
+                name: 'raid',
+                date: date + 500000,
+                attendance: [
+                    { players: [player1, player2, player3], comment: 'Start', date, dkps: 1 },
+                    { players: [player2, player3], comment: 'Tick', date, dkps: 1 },
+                    { players: [player2], comment: 'Tick', date, dkps: 1 }
+                ],
+                active: false,
+                deprecated: false,
+            });
+
+            const callback = jest.fn();
+            const auction = auctioner.startAuction(item, guild, callback, 0, 600, 2);
+            await auctioner.bid(guild, auction.id, 20, player1);
+            await auctioner.bid(guild, auction.id, 10, player2);
+            await auctioner.bid(guild, auction.id, 10, player3);
+
+            await endSetTimeout();
+
+            expect(auction.winners.map(w => w.player)).toEqual([player1, player2]);
+            expect(auction.numberOfItems).toBe(2);
+            expect(auction.bids.length).toBe(3);
+        })
+
         it('should calculate the winners for multiple items when some of them are ALT bids', async () => {
             const item = 'item';
             await manager.addDKP(guild, player1, 100, 'comment');

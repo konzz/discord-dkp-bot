@@ -97,15 +97,10 @@ client.once(Events.ClientReady, async c => {
 
 		c.guilds.cache.forEach(async guild => {
 			console.log(`Started refreshing ${commands.length} application (/) commands for guild: ${guild.name} (${guild.id}).`);
-
 			// The put method is used to fully refresh all commands in the guild with the current set
-			await rest.put(Routes.applicationGuildCommands(clientId, guild.id), { body: [] })
-			/*const data = await rest.put(
-				Routes.applicationGuildCommands(clientId, guild.id),
-				{ body: commands },
-			);
-
-			console.log(`Successfully reloaded ${data.length} application (/) commands for guild: ${guild.name} (${guild.id}).`);*/
+			await rest.put(Routes.applicationGuildCommands(clientId, guild.id), { body: commands });
+			await rest.put(Routes.applicationGuildCommands(clientId, guild.id), { body: [] });
+			console.log(`Successfully reloaded application (/) commands for guild: ${guild.name} (${guild.id}).`);
 		});
 
 

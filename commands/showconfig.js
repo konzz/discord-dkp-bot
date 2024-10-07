@@ -16,6 +16,8 @@ module.exports = {
 		const raidDeprecationTime = guildConfig.raidDeprecationTime || 0;
 		const bidTime = guildConfig.bidTime || 0;
 		const minBid = guildConfig.minBid || 0;
+		const minBidToLockForMain = guildConfig.minBidToLockForMain || 0;
+		const overBidtoWinMain = guildConfig.overBidtoWinMain || 0;
 
 		const config = [
 			{ name: 'DKP Officer role', value: adminRole ? adminRole.name : 'Not set' },
@@ -26,6 +28,8 @@ module.exports = {
 			{ name: 'Auction channel', value: auctionChannel ? auctionChannel.name : 'Not set' },
 			{ name: 'Bid time', value: bidTime ? `${bidTime} seconds` : 'Not set' },
 			{ name: 'Minimum bid', value: minBid ? `${minBid} DKP` : 'Not set' },
+			{ name: 'Minimum bid to lock for main', value: minBidToLockForMain ? `${minBidToLockForMain} DKP` : 'Not set' },
+			{ name: 'Over bid to win main', value: overBidtoWinMain ? `${overBidtoWinMain} DKP` : 'Not set' },
 		];
 
 		await interaction.reply({ embeds: [{ title: 'Current configuration', fields: config, color: 5763719 }] });

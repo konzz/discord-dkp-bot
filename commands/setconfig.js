@@ -11,6 +11,8 @@ module.exports = {
         .addNumberOption(option => option.setName('raiddeprecationtime').setDescription('Time to deprecate raids for atendance (1 = 1 days)').setRequired(true))
         .addIntegerOption(option => option.setName('bidtime').setDescription('Bids time duration (1 = 1 second)').setMaxValue(1000).setMinValue(30).setRequired(true))
         .addChannelOption(option => option.setName('secondraidchannel').setDescription('Second raid channel to take attendance').addChannelTypes(ChannelType.GuildVoice))
+        .addIntegerOption(option => option.setName('minbidtolockformain').setDescription('Minimum bid to be main bid').setMinValue(0).setRequired(false))
+        .addIntegerOption(option => option.setName('overbidtowinmain').setDescription('Over bid amount to win main bids as an alt').setMinValue(0).setRequired(false))
         .addIntegerOption(option => option.setName('minbid').setDescription('Minimum bid').setMinValue(0).setRequired(false))
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction, manager) {
@@ -28,6 +30,8 @@ module.exports = {
         const raidDeprecationTime = interaction.options.getNumber('raiddeprecationtime') * 86400000;
         const bidTime = interaction.options.getInteger('bidtime');
         const minBid = interaction.options.getInteger('minbid');
+        const minBidToLockForMain = interaction.options.getInteger('minbidtolockformain');
+        const overBidtoWinMain = interaction.options.getInteger('overbidtowinmain');
         await manager.saveGuildOptions(guild, {
             raidChannel: raidChannel.id,
             adminRole: role.id,
@@ -36,7 +40,9 @@ module.exports = {
             bidTime,
             auctionChannel: auctionChannel.id,
             secondRaidChannel: secondRaidChannel?.id,
-            minBid
+            minBid,
+            minBidToLockForMain,
+            overBidtoWinMain,
         });
 
         await interaction.reply({ content: 'Configuration saved', ephemeral: true });

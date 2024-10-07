@@ -14,8 +14,8 @@ class Auctioner {
         this.auctions = [];
     }
 
-    startAuction(item, guild, callback, minBid = 0, duration = 60000, numberOfItems = 1) {
-        const auction = new Auction(guild, item, minBid, numberOfItems);
+    startAuction(item, guild, callback, minBid = 0, duration = 60000, numberOfItems = 1, minBidToLockForMain = 0, overBidtoWinMain = 0) {
+        const auction = new Auction(guild, item, minBid, numberOfItems, minBidToLockForMain, overBidtoWinMain);
         this.auctions.push(auction);
         setTimeout(async () => {
             if (!auction.auctionActive) {

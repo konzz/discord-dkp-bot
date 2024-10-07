@@ -2,7 +2,7 @@ require('dotenv').config()
 const uniqid = require('uniqid');
 
 module.exports = class Auction {
-    constructor(guild, item, minBid = 0, numberOfItems = 1) {
+    constructor(guild, item, minBid = 0, numberOfItems = 1, minBidToLockForMain = 0, overBidtoWinMain = 0) {
         this.item = item;
         this.bids = [];
         this.id = `${guild}_${uniqid()}`;
@@ -12,6 +12,8 @@ module.exports = class Auction {
         this.auctionActive = true;
         this.minBid = minBid;
         this.numberOfItems = numberOfItems === 0 ? 1 : numberOfItems;
+        this.minBidToLockForMain = minBidToLockForMain;
+        this.overBidtoWinMain = overBidtoWinMain;
     }
 
     endAuction() {
@@ -121,8 +123,9 @@ module.exports = class Auction {
     }
 
     getWinners(bids, numberOfWinners = 1) {
-        const mainBids = bids.filter(bid => bid.bidForMain);
-        const altBids = bids.filter(bid => !bid.bidForMain);
+        const [highestMainBid] = bids.filter(bid => bid.bidForMain).sort((a, b) => b.amount - a.amount);
+        const mainBids = bids.filter(bid => (bid.bidForMain && bid.amount >= this.minBidToLockForMain) || (this.overBidtoWinMain && highestMainBid && bid.amount >= highestMainBid.amount + this.overBidtoWinMain));
+        const altBids = bids.filter(bid => mainBids.findIndex(mainBid => mainBid.player === bid.player) === -1);
 
         const topMainBids = this.getTopBids(mainBids, numberOfWinners);
         const topAltBids = this.getTopBids(altBids, numberOfWinners);
@@ -163,6 +166,7 @@ module.exports = class Auction {
         }
 
         const amountOfWinnersNeeded = this.numberOfItems > this.bids.length ? this.bids.length : this.numberOfItems;
+
         const winners = this.getWinners(this.bids, amountOfWinnersNeeded);
 
         if (this.numberOfItems > 1) {

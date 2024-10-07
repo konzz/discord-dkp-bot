@@ -348,4 +348,70 @@ describe('Auctioner', () => {
             expect(auction.bids.length).toBe(2);
         })
     });
+
+    describe('minBidToLockForMain', () => {
+        it('should not treat bids as main if they are less than minBidToLockForMain', async () => {
+            const item = 'item';
+            await manager.addDKP(guild, player1, 100, 'comment');
+            await manager.addDKP(guild, player2, 100, 'comment');
+
+            const callback = jest.fn();
+            const minBid = 0;
+            const duration = 600;
+            const numberOfItems = 1;
+            const minBidToLockForMain = 20;
+            const auction = auctioner.startAuction(item, guild, callback, minBid, duration, numberOfItems, minBidToLockForMain);
+            await auctioner.bid(guild, auction.id, 18, player1, false);
+            await auctioner.bid(guild, auction.id, 15, player2, true);
+            await endSetTimeout();
+
+            expect(auction.winner).toEqual(
+                { player: player1, amount: 18, bidForMain: false, attendance: 100, valid: true }
+            );
+        });
+    });
+
+    describe('overBidtoWinMain', () => {
+        it('should treat ALT bids as main when they over bid the highest MAIN bid by the given amount', async () => {
+            const item = 'item';
+            await manager.addDKP(guild, player1, 300, 'comment');
+            await manager.addDKP(guild, player2, 300, 'comment');
+
+            const callback = jest.fn();
+            const minBid = 0;
+            const duration = 600;
+            const numberOfItems = 1;
+            const minBidToLockForMain = 20;
+            const overBidtoWinMain = 100;
+            const auction = auctioner.startAuction(item, guild, callback, minBid, duration, numberOfItems, minBidToLockForMain, overBidtoWinMain);
+            await auctioner.bid(guild, auction.id, 200, player1, false);
+            await auctioner.bid(guild, auction.id, 25, player2, true);
+            await endSetTimeout();
+
+            expect(auction.winner).toEqual(
+                { player: player1, amount: 200, bidForMain: false, attendance: 100, valid: true }
+            );
+        });
+
+        it('should be ok when only ALTS bid', async () => {
+            const item = 'item';
+            await manager.addDKP(guild, player1, 300, 'comment');
+            await manager.addDKP(guild, player2, 300, 'comment');
+
+            const callback = jest.fn();
+            const minBid = 0;
+            const duration = 600;
+            const numberOfItems = 1;
+            const minBidToLockForMain = 20;
+            const overBidtoWinMain = 100;
+            const auction = auctioner.startAuction(item, guild, callback, minBid, duration, numberOfItems, minBidToLockForMain, overBidtoWinMain);
+            await auctioner.bid(guild, auction.id, 200, player1, false);
+            await auctioner.bid(guild, auction.id, 25, player2, false);
+            await endSetTimeout();
+
+            expect(auction.winner).toEqual(
+                { player: player1, amount: 200, bidForMain: false, attendance: 100, valid: true }
+            );
+        });
+    });
 });

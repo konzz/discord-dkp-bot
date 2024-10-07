@@ -1,7 +1,7 @@
 const jsdom = require('jsdom');
 const { JSDOM } = jsdom;
 
-module.exports = class ItemSearch {
+module.exports = class TAKPItemSearch {
     constructor() {
     }
 

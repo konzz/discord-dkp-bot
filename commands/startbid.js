@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } = require('discord.js');
-const ItemSearch = require('../ItemSearch');
+const ItemSearch = require('../search/ItemSearch');
 const Auctioner = require('../Auctioner/Auctioner');
 const { playSound } = require('../utils/Player.js');
 const client = require('../db');
@@ -24,16 +24,25 @@ module.exports = {
         .setDescription('start a bid for an item')
         .addStringOption(option => option.setName('search').setDescription('Item name or id').setRequired(true))
         .addIntegerOption(option => option.setName('minbid').setDescription('Minimum bid').setMinValue(0).setRequired(false))
-        .addIntegerOption(option => option.setName('numitems').setDescription('Number of items').setMinValue(1).setRequired(false)),
+        .addIntegerOption(option => option.setName('numitems').setDescription('Number of items').setMinValue(1).setRequired(false))
+        .addStringOption(option => option.setName('database').setDescription('quarm | takp').setRequired(false)),
     async execute(interaction, manager, logger) {
         await interaction.deferReply({ ephemeral: true });
         const guild = interaction.guild;
         const guildConfig = await manager.getGuildOptions(interaction.guild.id) || {};
         const raidChannel = guildConfig.raidChannel;
         const search = interaction.options.getString('search');
-        const items = await itemSearch.searchItem(search);
+
         const minBid = interaction.options.getInteger('minbid') || guildConfig.minBid || 0;
         const numberOfItems = interaction.options.getInteger('numitems') || 1;
+        const database = interaction.options.getString('database') || 'quarm';
+
+        if (database !== 'quarm' && database !== 'takp') {
+            interaction.editReply({ content: 'Invalid database option. Must be quarm or takp', ephemeral: true });
+            return;
+        }
+
+        const items = await itemSearch.searchItem(search, database);
 
         if (!items) {
             interaction.editReply({ content: 'No items found', ephemeral: true });
@@ -53,7 +62,7 @@ module.exports = {
             if (!itemId) {
                 return;
             }
-            item = await itemSearch.searchItem(itemId);
+            item = await itemSearch.searchItem(itemId, database);
         }
 
         const startAuctionMessage = await logger.sendItemEmbed(interaction, item, true);
@@ -124,7 +133,16 @@ module.exports = {
                 };
 
                 const bidTime = guildConfig.bidTime + 5;
-                const startedAuction = await Auctioner.instance.startAuction(item, guild.id, callback, minBid, bidTime * 1000, numberOfItems);
+                const startedAuction = await Auctioner.instance.startAuction(
+                    item,
+                    guild.id,
+                    callback,
+                    minBid,
+                    bidTime * 1000,
+                    numberOfItems,
+                    guildConfig.minBidToLockForMain,
+                    guildConfig.overBidtoWinMain
+                );
                 message = await logger.sendAuctionStartEmbed(guildConfig, startedAuction, minBid, numberOfItems);
 
                 playSound(guild, raidChannel, '../assets/bell.mp3');

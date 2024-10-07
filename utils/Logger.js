@@ -1,9 +1,7 @@
 const { ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } = require('discord.js');
 const Auctioner = require('../Auctioner/Auctioner');
-const ItemSearch = require('../ItemSearch');
 const uniqid = require('uniqid');
 
-const itemSearch = new ItemSearch();
 
 module.exports = class Logger {
     constructor(client) {
@@ -110,7 +108,7 @@ module.exports = class Logger {
     itemsToEmbededList(items) {
         return {
             title: 'Search Results',
-            description: items.map(item => `#${item.id}${' '.repeat(10 - item.id.length)}${item.name} - ${item.type}`).join('\n'),
+            description: items.map(item => `#${item.id}${' '.repeat(10 - item.id.length)} ${item.name}${item.type ? ' - ' + item.type : ''}`).join('\n'),
         }
     }
 

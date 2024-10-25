@@ -15,7 +15,6 @@ module.exports = class QUARMItemSearch {
         const searchUrl = `https://www.pqdi.cc/api/v1/items?name=${search}`;
         const response = await fetch(searchUrl);
         const data = await response.json();
-        console.log(data);
 
         if (data.items && data.items.length > 1) {
             return data.items;

@@ -111,10 +111,16 @@ module.exports = {
                                 const raid = await manager.getActiveRaid(guild.id);
                                 if (auction.winner) {
                                     await manager.removeDKP(guild.id, auction.winner.player, auction.winner.amount, auction.item.name, raid, auction.item);
+                                    if (process.env.LOG_LEVEL === 'DEBUG') {
+                                        console.log(`Removing ${auction.winner.amount} dkp from ${auction.winner.player}`);
+                                    }
                                 }
                                 else {
                                     auction.winners.forEach(async winner => {
                                         await manager.removeDKP(guild.id, winner.player, winner.amount, auction.item.name, raid, auction.item);
+                                        if (process.env.LOG_LEVEL === 'DEBUG') {
+                                            console.log(`Removing ${winner.amount} dkp from ${winner.player}`);
+                                        }
                                     });
                                 }
                             }

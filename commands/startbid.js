@@ -101,8 +101,13 @@ module.exports = {
                         const confirmWinCollector = message.createMessageComponentCollector({ componentType: ComponentType.Button, time: 360_000, filter: collectorFilter });
                         confirmWinCollector.on('collect', async i => {
                             if (i.customId.startsWith('confirm_' + auction.id)) {
+                                confirmWinCollector.stop();
                                 confirmButton.setDisabled(true);
                                 confirmButton.setLabel('Winner/s Confirmed').setStyle(ButtonStyle.Success);
+                                await i.update({
+                                    components: [row]
+                                });
+
                                 const raid = await manager.getActiveRaid(guild.id);
                                 if (auction.winner) {
                                     await manager.removeDKP(guild.id, auction.winner.player, auction.winner.amount, auction.item.name, raid, auction.item);
@@ -112,11 +117,6 @@ module.exports = {
                                         await manager.removeDKP(guild.id, winner.player, winner.amount, auction.item.name, raid, auction.item);
                                     });
                                 }
-
-                                await i.update({
-                                    components: [row]
-                                });
-                                confirmWinCollector.stop();
                             }
                         });
 

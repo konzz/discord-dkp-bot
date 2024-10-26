@@ -431,4 +431,46 @@ describe('DKPManager', () => {
             expect(result[3]).toEqual({ comment: 'Sword of truth', date: result[3].date, dkps: -5, player: player1, item: swordOfTruth });
         });
     });
+
+    describe('searchLogs()', () => {
+        it('should return the logs of all players that match the search ordered by date', async () => {
+            // Arrange
+            const manager = new DKPManager(client);
+            const guild = 'The butchers';
+            const player = 'player';
+            await playersCollection.insertOne({
+                player: 'player1',
+                current: 0,
+                log: [
+                    { dkp: 1, comment: 'Start', date: 1 },
+                    { dkp: 1, comment: 'Tick', date: 2 },
+                    { dkp: 5, comment: 'Kill boss', date: 3 },
+                    { dkp: -5, comment: 'Sword of truth', date: 4 },
+                    { dkp: 1, comment: 'Tick', date: 5 },
+                    { dkp: 1, comment: 'Tick', date: 6 },
+                    { dkp: 5, comment: 'Kill Boss', date: 7 },
+                ],
+                guild,
+            });
+            await playersCollection.insertOne({
+                player: 'player2',
+                current: 0,
+                log: [
+                    { dkp: 1, comment: 'Start', date: 1 },
+                    { dkp: 1, comment: 'Tick', date: 2 },
+                    { dkp: 5, comment: 'Kill boss', date: 3 },
+                ],
+                guild,
+            });
+            // Act
+            const result = await manager.searchLogs(guild, 'boss');
+            // Assert
+            expect(result.length).toBe(3);
+            expect(result).toEqual([
+                { dkp: 5, comment: 'Kill boss', date: 3, player: 'player1', _id: expect.any(Object) },
+                { dkp: 5, comment: 'Kill boss', date: 3, player: 'player2', _id: expect.any(Object) },
+                { dkp: 5, comment: 'Kill Boss', date: 7, player: 'player1', _id: expect.any(Object) },
+            ]);
+        });
+    });
 });

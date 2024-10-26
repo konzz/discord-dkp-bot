@@ -204,6 +204,17 @@ module.exports = class DKPManager {
         return this[collection].find({ guild }).project({ _id: 0 }).toArray();
     }
 
+    async searchLogs(guild, searchterm) {
+        //search in all Logs for an specific term and return the logs order by date with the player
+        const logs = await this.players.aggregate([
+            { $match: { guild } },
+            { $unwind: '$log' },
+            { $match: { 'log.comment': { $regex: searchterm, $options: 'i' } } },
+            { $project: { player: 1, dkp: '$log.dkp', comment: '$log.comment', date: '$log.date', item: '$log.item' } },
+        ]).toArray();
+        return logs.sort((a, b) => a.date - b.date);
+    }
+
     async addCharacter(guild, player, character) {
         const alreadyRegistered = await this.players.findOne({ characters: character, guild });
 

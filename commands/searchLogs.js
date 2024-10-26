@@ -32,7 +32,7 @@ module.exports = {
         const row = new ActionRowBuilder().addComponents(previousPageButton, nextPageButton);
         const logsEmbed = {
             color: 0x0099ff,
-            title: 'Logs',
+            title: `Logs for: ${search} (${logs.length} results)`,
             description: logs.slice(currentPage * entriesPerPage, (currentPage + 1) * entriesPerPage).map(log => {
                 return `- <t:${Math.floor(log.date / 1000)}:d>  **${log.dkp}** ${log.item ? `[${log.item.name}](${log.item.url})` : `*${log.comment}*`} <@${log.player}>`;
             }).join('\n'),
@@ -56,7 +56,7 @@ module.exports = {
             previousPageButton.setDisabled(currentPage === 0);
             nextPageButton.setDisabled(currentPage === pages - 1);
 
-            logsEmbed.description = logs.slice(currentPage * 10, (currentPage + 1) * 10).map(log => {
+            logsEmbed.description = logs.slice(currentPage * entriesPerPage, (currentPage + 1) * entriesPerPage).map(log => {
                 return `- <t:${Math.floor(log.date / 1000)}:d>  **${log.dkp}** ${log.item ? `[${log.item.name}](${log.item.url})` : `*${log.comment}*`} <@${log.player}>`;
             }).join('\n');
             logsEmbed.footer.text = `${currentPage + 1}/${pages}`;

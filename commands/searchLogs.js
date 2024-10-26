@@ -11,6 +11,13 @@ module.exports = {
         const guild = interaction.guild.id;
         const search = interaction.options.getString('search');
 
+        //regex to check if searching for 'Tick' or 'tick' or any other case
+        const regex = new RegExp(/tick/i);
+        const isSearchingForTick = regex.test('tick');
+        if (isSearchingForTick) {
+            return interaction.reply({ content: 'DKP - bot scowls at you. What do you want your tombstone to say?', ephemeral: true });
+        }
+
         const logs = await manager.searchLogs(guild, search);
         if (logs.length === 0) {
             return interaction.reply({ content: 'No logs found', ephemeral: true });

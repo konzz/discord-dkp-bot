@@ -13,7 +13,7 @@ module.exports = {
 
         //regex to check if searching for 'Tick' or 'tick' or any other case
         const regex = new RegExp(/tick/i);
-        const isSearchingForTick = regex.test('tick');
+        const isSearchingForTick = regex.test(search);
         if (isSearchingForTick) {
             return interaction.reply({ content: 'DKP - bot scowls at you. What do you want your tombstone to say?', ephemeral: true });
         }

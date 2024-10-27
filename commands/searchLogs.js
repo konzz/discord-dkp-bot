@@ -34,7 +34,9 @@ module.exports = {
             color: 0x0099ff,
             title: `Logs for: ${search} (${logs.length} results)`,
             description: logs.slice(currentPage * entriesPerPage, (currentPage + 1) * entriesPerPage).map(log => {
-                return `- <t:${Math.floor(log.date / 1000)}:d>  **${log.dkp}** ${log.item ? `[${log.item.name}](${log.item.url})` : `*${log.comment}*`} <@${log.player}>`;
+                const playerDiscordUser = interaction.guild.members.cache.get(log.player);
+                const displayName = playerDiscordUser.nickname || playerDiscordUser.user.globalName || playerDiscordUser.user.username;
+                return `- <t:${Math.floor(log.date / 1000)}:d>  **${log.dkp}** ${log.item ? `[${log.item.name}](${log.item.url})` : `*${log.comment}*`} ` + "`" + displayName + "`";
             }).join('\n'),
             footer: {
                 text: `${currentPage + 1}/${pages}`,
@@ -57,7 +59,9 @@ module.exports = {
             nextPageButton.setDisabled(currentPage === pages - 1);
 
             logsEmbed.description = logs.slice(currentPage * entriesPerPage, (currentPage + 1) * entriesPerPage).map(log => {
-                return `- <t:${Math.floor(log.date / 1000)}:d>  **${log.dkp}** ${log.item ? `[${log.item.name}](${log.item.url})` : `*${log.comment}*`} <@${log.player}>`;
+                const playerDiscordUser = interaction.guild.members.cache.get(log.player);
+                const displayName = playerDiscordUser.nickname || playerDiscordUser.user.globalName || playerDiscordUser.user.username;
+                return `- <t:${Math.floor(log.date / 1000)}:d>  **${log.dkp}** ${log.item ? `[${log.item.name}](${log.item.url})` : `*${log.comment}*`}` + "`" + displayName + "`";
             }).join('\n');
             logsEmbed.footer.text = `${currentPage + 1}/${pages}`;
 

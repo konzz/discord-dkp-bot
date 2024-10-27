@@ -33,8 +33,8 @@ module.exports = {
         const logsEmbed = {
             color: 0x0099ff,
             title: `Logs for: ${search} (${logs.length} results)`,
-            description: logs.slice(currentPage * entriesPerPage, (currentPage + 1) * entriesPerPage).map(log => {
-                const playerDiscordUser = interaction.guild.members.cache.get(log.player);
+            description: logs.slice(currentPage * entriesPerPage, (currentPage + 1) * entriesPerPage).map(async (log) => {
+                const playerDiscordUser = await interaction.guild.members.fetch(log.player);
                 const displayName = playerDiscordUser ? (playerDiscordUser.nickname || playerDiscordUser.user.globalName || playerDiscordUser.user.username) : 'Unknown (' + log.player + ')';
                 return `- <t:${Math.floor(log.date / 1000)}:d>  **${log.dkp}** ${log.item ? `[${log.item.name}](${log.item.url})` : `*${log.comment}*`} ` + "`" + displayName + "`";
             }).join('\n'),
@@ -58,8 +58,8 @@ module.exports = {
             previousPageButton.setDisabled(currentPage === 0);
             nextPageButton.setDisabled(currentPage === pages - 1);
 
-            logsEmbed.description = logs.slice(currentPage * entriesPerPage, (currentPage + 1) * entriesPerPage).map(log => {
-                const playerDiscordUser = interaction.guild.members.cache.get(log.player);
+            logsEmbed.description = logs.slice(currentPage * entriesPerPage, (currentPage + 1) * entriesPerPage).map(async (log) => {
+                const playerDiscordUser = await interaction.guild.members.fetch(log.player);
                 const displayName = playerDiscordUser ? (playerDiscordUser.nickname || playerDiscordUser.user.globalName || playerDiscordUser.user.username) : 'Unknown (' + log.player + ')';
                 return `- <t:${Math.floor(log.date / 1000)}:d>  **${log.dkp}** ${log.item ? `[${log.item.name}](${log.item.url})` : `*${log.comment}*`}` + "`" + displayName + "`";
             }).join('\n');

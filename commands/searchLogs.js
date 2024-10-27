@@ -8,6 +8,8 @@ module.exports = {
         .setDescription('Search logs for an specific comment')
         .addStringOption(option => option.setName('search').setDescription('Search term').setRequired(true)),
     async execute(interaction, manager) {
+        //defer interaction to prevent timeout
+        await interaction.deferReply({ ephemeral: true });
         const guild = interaction.guild.id;
         const search = interaction.options.getString('search');
 
@@ -15,12 +17,12 @@ module.exports = {
         const regex = new RegExp(/tick/i);
         const isSearchingForTick = regex.test(search);
         if (isSearchingForTick) {
-            return interaction.reply({ content: 'DKP - bot scowls at you. What do you want your tombstone to say?', ephemeral: true });
+            return interaction.editReply({ content: 'DKP - bot scowls at you. What do you want your tombstone to say?', ephemeral: true });
         }
 
         const logs = await manager.searchLogs(guild, search);
         if (logs.length === 0) {
-            return interaction.reply({ content: 'No logs found', ephemeral: true });
+            return interaction.editReply({ content: 'No logs found', ephemeral: true });
         }
 
         const entriesPerPage = 20;
@@ -30,11 +32,21 @@ module.exports = {
         const previousPageButton = new ButtonBuilder().setCustomId(`previousPage_${id}`).setLabel('Previous Page').setDisabled(true).setStyle(ButtonStyle.Primary);
         const nextPageButton = new ButtonBuilder().setCustomId(`nextPage_${id}`).setLabel('Next Page').setStyle(ButtonStyle.Primary);
         const row = new ActionRowBuilder().addComponents(previousPageButton, nextPageButton);
+        //refresh the cache
+        console.log('Fetching members...');
+        let usersInLog;
+        try {
+            usersInLog = await interaction.guild.members.fetch({ user: logs.map(log => log.player) });
+            console.log('Fetched members', usersInLog);
+        } catch (e) {
+            interaction.editReply({ content: 'Error fetching members', ephemeral: true });
+        }
+
         const logsEmbed = {
             color: 0x0099ff,
             title: `Logs for: ${search} (${logs.length} results)`,
-            description: logs.slice(currentPage * entriesPerPage, (currentPage + 1) * entriesPerPage).map(async (log) => {
-                const playerDiscordUser = await interaction.guild.members.fetch(log.player);
+            description: logs.slice(currentPage * entriesPerPage, (currentPage + 1) * entriesPerPage).map(log => {
+                const playerDiscordUser = usersInLog.get(log.player);
                 const displayName = playerDiscordUser ? (playerDiscordUser.nickname || playerDiscordUser.user.globalName || playerDiscordUser.user.username) : 'Unknown (' + log.player + ')';
                 return `- <t:${Math.floor(log.date / 1000)}:d>  **${log.dkp}** ${log.item ? `[${log.item.name}](${log.item.url})` : `*${log.comment}*`} ` + "`" + displayName + "`";
             }).join('\n'),
@@ -43,7 +55,7 @@ module.exports = {
             },
         };
 
-        await interaction.reply({ embeds: [logsEmbed], components: [row], ephemeral: true });
+        await interaction.editReply({ embeds: [logsEmbed], components: [row], ephemeral: true });
 
         const collectorFilter = i => i.user.id === interaction.user.id && i.customId.endsWith(id);
         const collector = interaction.channel.createMessageComponentCollector({ time: 120_000, filter: collectorFilter });
@@ -58,8 +70,8 @@ module.exports = {
             previousPageButton.setDisabled(currentPage === 0);
             nextPageButton.setDisabled(currentPage === pages - 1);
 
-            logsEmbed.description = logs.slice(currentPage * entriesPerPage, (currentPage + 1) * entriesPerPage).map(async (log) => {
-                const playerDiscordUser = await interaction.guild.members.fetch(log.player);
+            logsEmbed.description = logs.slice(currentPage * entriesPerPage, (currentPage + 1) * entriesPerPage).map(log => {
+                const playerDiscordUser = usersInLog.get(log.player);
                 const displayName = playerDiscordUser ? (playerDiscordUser.nickname || playerDiscordUser.user.globalName || playerDiscordUser.user.username) : 'Unknown (' + log.player + ')';
                 return `- <t:${Math.floor(log.date / 1000)}:d>  **${log.dkp}** ${log.item ? `[${log.item.name}](${log.item.url})` : `*${log.comment}*`}` + "`" + displayName + "`";
             }).join('\n');

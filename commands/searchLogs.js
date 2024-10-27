@@ -35,7 +35,7 @@ module.exports = {
             title: `Logs for: ${search} (${logs.length} results)`,
             description: logs.slice(currentPage * entriesPerPage, (currentPage + 1) * entriesPerPage).map(log => {
                 const playerDiscordUser = interaction.guild.members.cache.get(log.player);
-                const displayName = playerDiscordUser ? (playerDiscordUser.nickname || playerDiscordUser.user.globalName || playerDiscordUser.user.username) : 'Unknown (id: ' + log.player + ')';
+                const displayName = playerDiscordUser ? (playerDiscordUser.nickname || playerDiscordUser.user.globalName || playerDiscordUser.user.username) : 'Unknown (' + log.player + ')';
                 return `- <t:${Math.floor(log.date / 1000)}:d>  **${log.dkp}** ${log.item ? `[${log.item.name}](${log.item.url})` : `*${log.comment}*`} ` + "`" + displayName + "`";
             }).join('\n'),
             footer: {
@@ -60,7 +60,7 @@ module.exports = {
 
             logsEmbed.description = logs.slice(currentPage * entriesPerPage, (currentPage + 1) * entriesPerPage).map(log => {
                 const playerDiscordUser = interaction.guild.members.cache.get(log.player);
-                const displayName = playerDiscordUser ? (playerDiscordUser.nickname || playerDiscordUser.user.globalName || playerDiscordUser.user.username) : 'Unknown (id: ' + log.player + ')';
+                const displayName = playerDiscordUser ? (playerDiscordUser.nickname || playerDiscordUser.user.globalName || playerDiscordUser.user.username) : 'Unknown (' + log.player + ')';
                 return `- <t:${Math.floor(log.date / 1000)}:d>  **${log.dkp}** ${log.item ? `[${log.item.name}](${log.item.url})` : `*${log.comment}*`}` + "`" + displayName + "`";
             }).join('\n');
             logsEmbed.footer.text = `${currentPage + 1}/${pages}`;

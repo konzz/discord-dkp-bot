@@ -33,11 +33,9 @@ module.exports = {
         const nextPageButton = new ButtonBuilder().setCustomId(`nextPage_${id}`).setLabel('Next Page').setStyle(ButtonStyle.Primary);
         const row = new ActionRowBuilder().addComponents(previousPageButton, nextPageButton);
         //refresh the cache
-        console.log('Fetching members...');
         let usersInLog;
         try {
             usersInLog = await interaction.guild.members.fetch({ user: logs.map(log => log.player) });
-            console.log('Fetched members', usersInLog);
         } catch (e) {
             interaction.editReply({ content: 'Error fetching members', ephemeral: true });
         }

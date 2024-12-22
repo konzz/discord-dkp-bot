@@ -201,7 +201,7 @@ module.exports = class DKPManager {
         if (!this[collection]) {
             throw new Error(`Collection ${collection} not found`);
         }
-        return this[collection].find({ guild }).project({ _id: 0 }).toArray();
+        return this[collection].find({ guild }).toArray();
     }
 
     async searchLogs(guild, searchterm) {

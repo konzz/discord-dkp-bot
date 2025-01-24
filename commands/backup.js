@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const fs = require('fs');
+const zip = new require('node-zip')();
 
 
 const getBackUpFile = async (manager, guild, collection) => {
@@ -17,7 +18,6 @@ const getBackUpFile = async (manager, guild, collection) => {
     return filePath;
 }
 
-
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('backup')
@@ -27,9 +27,17 @@ module.exports = {
         await interaction.deferReply();
         const guild = interaction.guild.id;
         try {
+            console.log('Creating backup');
             const playersFile = await getBackUpFile(manager, guild, 'players');
             const raidsFile = await getBackUpFile(manager, guild, 'raids');
-            await interaction.editReply({ content: `Backup created ${new Date().toLocaleString()}`, files: [playersFile, raidsFile] });
+            //compress files
+            zip.file('players.json', fs.readFileSync(playersFile));
+            zip.file('raids.json', fs.readFileSync(raidsFile));
+            const zipContent = zip.generate({ base64: false, compression: 'DEFLATE' });
+            const zipFile = Buffer.from(zipContent, 'binary');
+
+            //send files as .zip	
+            await interaction.editReply({ content: `Backup created ${new Date().toLocaleString()}`, files: [{ attachment: zipFile, name: 'backup.zip' }] });
         } catch (error) {
             await interaction.editReply({ content: `Error creating backup ${error}`, ephemeral: true });
         }

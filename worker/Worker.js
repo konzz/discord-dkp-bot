@@ -20,7 +20,15 @@ module.exports = class Worker {
     }
 
     async tick(guildOptions, raid) {
-        const discordGuild = await this.client.guilds.fetch(guildOptions.guild);
+        let discordGuild;
+        try {
+            discordGuild = await this.client.guilds.fetch(guildOptions.guild);
+        }
+        catch (error) {
+            console.log(`Error fetching guild ${guildOptions.guild} for raid: ${raid.name}`);
+            console.log(error);
+            return;
+        }
         const raidChannel = await discordGuild.channels.fetch(guildOptions.raidChannel);
         const playersInChannel = [...raidChannel.members.keys()];
 

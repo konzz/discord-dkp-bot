@@ -26,7 +26,7 @@ module.exports = class Worker {
         }
         catch (error) {
             console.log(`Error fetching guild ${guildOptions.guild} for raid: ${raid.name}`);
-            console.log(error);
+            this.manager.endRaid(guildOptions.guild);
             return;
         }
         const raidChannel = await discordGuild.channels.fetch(guildOptions.raidChannel);

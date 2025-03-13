@@ -219,7 +219,7 @@ module.exports = class Logger {
                 try {
                     dmChannel = await discordGuild.members.fetch(user).then(m => m.createDM());
                     await dmChannel.send({
-                        content: 'How much do you want to bid on ' + auction.item.name + '?, 0 to cancel',
+                        content: `How much do you want to ${forMain ? 'MAIN' : 'ALT'} bid on ${auction.item.name}?, 0 to cancel`,
                     });
                 } catch (e) {
                     await i.reply({ content: 'Failed to send DM', ephemeral: true });

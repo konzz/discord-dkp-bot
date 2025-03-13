@@ -215,8 +215,9 @@ module.exports = class Logger {
                 i.deferUpdate();
                 const forMain = !i.customId.startsWith('bid_alt');
                 const user = i.user.id;
+                let dmChannel;
                 try {
-                    const dmChannel = await discordGuild.members.fetch(user).then(m => m.createDM());
+                    dmChannel = await discordGuild.members.fetch(user).then(m => m.createDM());
                     await dmChannel.send({
                         content: 'How much do you want to bid on ' + auction.item.name + '?, 0 to cancel',
                     });
@@ -228,7 +229,8 @@ module.exports = class Logger {
                 dmCollector.on('collect', async m => {
                     const amount = parseInt(m.content);
                     if (amount === 0) {
-                        await dmChannel.send('Invalid bid');
+                        await dmChannel.send('Bid cancelled');
+                        dmCollector.stop();
                         return;
                     }
                     try {

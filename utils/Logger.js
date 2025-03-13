@@ -215,14 +215,22 @@ module.exports = class Logger {
                 i.deferUpdate();
                 const forMain = !i.customId.startsWith('bid_alt');
                 const user = i.user.id;
-                const dmChannel = await discordGuild.members.fetch(user).then(m => m.createDM());
-                await dmChannel.send({
-                    content: 'How much do you want to bid on ' + auction.item.name + '?',
-                });
+                try {
+                    const dmChannel = await discordGuild.members.fetch(user).then(m => m.createDM());
+                    await dmChannel.send({
+                        content: 'How much do you want to bid on ' + auction.item.name + '?, 0 to cancel',
+                    });
+                } catch (e) {
+                    await i.reply({ content: 'Failed to send DM', ephemeral: true });
+                }
 
                 const dmCollector = dmChannel.createMessageCollector({ time: 60000, filter: m => m.author.id === user });
                 dmCollector.on('collect', async m => {
                     const amount = parseInt(m.content);
+                    if (amount === 0) {
+                        await dmChannel.send('Invalid bid');
+                        return;
+                    }
                     try {
                         await Auctioner.instance.bid(guildOptions.guild, auction.id, amount, user, forMain);
                         await dmChannel.send('Bid placed');

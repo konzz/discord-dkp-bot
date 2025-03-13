@@ -223,6 +223,7 @@ module.exports = class Logger {
                     });
                 } catch (e) {
                     await i.reply({ content: 'Failed to send DM', ephemeral: true });
+                    return;
                 }
 
                 const dmCollector = dmChannel.createMessageCollector({ time: 60000, filter: m => m.author.id === user });

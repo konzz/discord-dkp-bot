@@ -143,11 +143,14 @@ module.exports = {
                     item,
                     guild.id,
                     callback,
-                    minBid,
-                    bidTime * 1000,
-                    numberOfItems,
-                    guildConfig.minBidToLockForMain,
-                    guildConfig.overBidtoWinMain
+                    {
+                        minBid,
+                        duration: bidTime * 1000,
+                        numberOfItems,
+                        minBidToLockForMain: guildConfig.minBidToLockForMain,
+                        overBidtoWinMain: guildConfig.overBidtoWinMain,
+                        checkAttendance: false
+                    }
                 );
                 message = await logger.sendAuctionStartEmbed(guildConfig, startedAuction, minBid, numberOfItems);
 

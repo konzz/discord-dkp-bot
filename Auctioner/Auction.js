@@ -2,7 +2,7 @@ require('dotenv').config()
 const uniqid = require('uniqid');
 
 module.exports = class Auction {
-    constructor(guild, item, minBid = 0, numberOfItems = 1, minBidToLockForMain = 0, overBidtoWinMain = 0) {
+    constructor(guild, item, minBid = 0, numberOfItems = 1, minBidToLockForMain = 0, overBidtoWinMain = 0, checkAttendance = true) {
         this.item = item;
         this.bids = [];
         this.id = `${guild}_${uniqid()}`;
@@ -14,6 +14,7 @@ module.exports = class Auction {
         this.numberOfItems = numberOfItems === 0 ? 1 : numberOfItems;
         this.minBidToLockForMain = minBidToLockForMain;
         this.overBidtoWinMain = overBidtoWinMain;
+        this.checkAttendance = checkAttendance;
     }
 
     endAuction() {
@@ -155,6 +156,9 @@ module.exports = class Auction {
                 return { ...bid, valid: true };
             }
             catch (e) {
+                if (process.env.LOG_LEVEL === 'DEBUG') {
+                    console.log(`removing bid from ${bid.player} - ${bid.amount} because ${e.message}`);
+                }
                 return { ...bid, valid: false, reason: e.message };
             }
         });

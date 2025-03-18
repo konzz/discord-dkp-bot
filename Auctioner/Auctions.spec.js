@@ -89,7 +89,7 @@ describe('Auctioner', () => {
             await manager.addDKP(guild, player1, 100, 'comment');
 
             const callback = jest.fn();
-            const auction = auctioner.startAuction(item, guild, callback, 20);
+            const auction = auctioner.startAuction(item, guild, callback, { minBid: 20 });
             await expect(async () => await auctioner.bid(guild, auction.id, 0, player1)).rejects.toThrowError('Bid amount must be greater than 0');
             await expect(async () => await auctioner.bid(guild, auction.id, -30, player1)).rejects.toThrowError('Bid amount must be greater than 0');
             await expect(async () => await auctioner.bid(guild, auction.id, 4.5, player1)).rejects.toThrowError('Bid amount must be an integer');
@@ -101,7 +101,7 @@ describe('Auctioner', () => {
             await manager.addDKP(guild, player1, 100, 'comment');
 
             const callback = jest.fn();
-            const auction = auctioner.startAuction(item, guild, callback, 20);
+            const auction = auctioner.startAuction(item, guild, callback, { minBid: 20 });
             await expect(async () => await auctioner.bid(guild, auction.id, amount, player1))
                 .rejects.toThrowError('Bid amount is less than the minimum bid (20)');
         });
@@ -229,7 +229,7 @@ describe('Auctioner', () => {
             await manager.addDKP(guild, player3, 100, 'comment');
 
             const callback = jest.fn();
-            const auction = auctioner.startAuction(item, guild, callback, 0, 600, 2);
+            const auction = auctioner.startAuction(item, guild, callback, { numberOfItems: 2 });
             await auctioner.bid(guild, auction.id, 10, player2);
             await auctioner.bid(guild, auction.id, 20, player1);
             await auctioner.bid(guild, auction.id, 5, player3);
@@ -251,7 +251,7 @@ describe('Auctioner', () => {
             await manager.addDKP(guild, player3, 100, 'comment');
 
             const callback = jest.fn();
-            const auction = auctioner.startAuction(item, guild, callback, 0, 600, 2);
+            const auction = auctioner.startAuction(item, guild, callback, { numberOfItems: 2 });
             await auctioner.bid(guild, auction.id, 20, player1);
             await endSetTimeout();
 
@@ -283,7 +283,7 @@ describe('Auctioner', () => {
             });
 
             const callback = jest.fn();
-            const auction = auctioner.startAuction(item, guild, callback, 0, 600, 2);
+            const auction = auctioner.startAuction(item, guild, callback, { numberOfItems: 2 });
             await auctioner.bid(guild, auction.id, 20, player1);
             await auctioner.bid(guild, auction.id, 10, player2);
             await auctioner.bid(guild, auction.id, 10, player3);
@@ -315,7 +315,7 @@ describe('Auctioner', () => {
             });
 
             const callback = jest.fn();
-            const auction = auctioner.startAuction(item, guild, callback, 0, 600, 2);
+            const auction = auctioner.startAuction(item, guild, callback, { numberOfItems: 2 });
             await auctioner.bid(guild, auction.id, 30, player2, false);
             await auctioner.bid(guild, auction.id, 20, player1);
             await auctioner.bid(guild, auction.id, 5, player3);
@@ -335,7 +335,7 @@ describe('Auctioner', () => {
             await manager.addDKP(guild, player2, 100, 'comment');
 
             const callback = jest.fn();
-            const auction = auctioner.startAuction(item, guild, callback, 0, 600, 2);
+            const auction = auctioner.startAuction(item, guild, callback, { numberOfItems: 2 });
             await auctioner.bid(guild, auction.id, 20, player1);
             await auctioner.bid(guild, auction.id, 5, player2, false);
             await endSetTimeout();
@@ -356,11 +356,9 @@ describe('Auctioner', () => {
             await manager.addDKP(guild, player2, 100, 'comment');
 
             const callback = jest.fn();
-            const minBid = 0;
-            const duration = 600;
-            const numberOfItems = 1;
+
             const minBidToLockForMain = 20;
-            const auction = auctioner.startAuction(item, guild, callback, minBid, duration, numberOfItems, minBidToLockForMain);
+            const auction = auctioner.startAuction(item, guild, callback, { minBidToLockForMain });
             await auctioner.bid(guild, auction.id, 18, player1, false);
             await auctioner.bid(guild, auction.id, 15, player2, true);
             await endSetTimeout();
@@ -378,12 +376,9 @@ describe('Auctioner', () => {
             await manager.addDKP(guild, player2, 300, 'comment');
 
             const callback = jest.fn();
-            const minBid = 0;
-            const duration = 600;
-            const numberOfItems = 1;
             const minBidToLockForMain = 20;
             const overBidtoWinMain = 100;
-            const auction = auctioner.startAuction(item, guild, callback, minBid, duration, numberOfItems, minBidToLockForMain, overBidtoWinMain);
+            const auction = auctioner.startAuction(item, guild, callback, { minBidToLockForMain, overBidtoWinMain });
             await auctioner.bid(guild, auction.id, 200, player1, false);
             await auctioner.bid(guild, auction.id, 25, player2, true);
             await endSetTimeout();
@@ -399,12 +394,9 @@ describe('Auctioner', () => {
             await manager.addDKP(guild, player2, 300, 'comment');
 
             const callback = jest.fn();
-            const minBid = 0;
-            const duration = 600;
-            const numberOfItems = 1;
             const minBidToLockForMain = 20;
             const overBidtoWinMain = 100;
-            const auction = auctioner.startAuction(item, guild, callback, minBid, duration, numberOfItems, minBidToLockForMain, overBidtoWinMain);
+            const auction = auctioner.startAuction(item, guild, callback, { minBidToLockForMain, overBidtoWinMain });
             await auctioner.bid(guild, auction.id, 200, player1, false);
             await auctioner.bid(guild, auction.id, 25, player2, false);
             await endSetTimeout();

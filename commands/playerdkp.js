@@ -18,7 +18,7 @@ module.exports = {
             const currentDKP = await manager.getPlayerDKP(guild, player.id);
             await interaction.reply({ content: '` ' + currentDKP + ' ` DKP', ephemeral: true });
         } catch (e) {
-            await interaction.reply({ content: `Error: ${e}`, ephemeral: true });
+            console.error(`Error getting playerdkp for player ${player.id}`, e);
         }
     },
     restricted: false,

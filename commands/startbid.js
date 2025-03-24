@@ -130,9 +130,14 @@ module.exports = {
                             confirmButton.setDisabled(true);
                             if (reason === 'time') {
                                 confirmButton.setLabel('Time for confirmation ended').setStyle(ButtonStyle.Success);
-                                await message.edit({
-                                    components: [row]
-                                });
+                                try {
+                                    await message.edit({
+                                        components: [row]
+                                    });
+                                }
+                                catch (e) {
+                                    console.log(e);
+                                }
                             }
                         });
                     }

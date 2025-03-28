@@ -49,6 +49,11 @@ module.exports = {
             return;
         }
 
+        if (items.length && items.length > 40) {
+            interaction.editReply({ content: `List too long (${items.length}), refine search`, ephemeral: true });
+            return;
+        }
+
         if (items.length && items.length > 25) {
             interaction.editReply({ embeds: [logger.itemsToEmbededList(items)], ephemeral: true });
             return;

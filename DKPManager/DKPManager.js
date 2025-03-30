@@ -38,12 +38,16 @@ module.exports = class DKPManager {
         return this.raids.findOne({ guild, active: true });
     }
 
+    async getRaidById(guild, raidId) {
+        return await this.raids.findOne({ _id: raidId, guild });
+    }
+
     async endRaid(guild) {
         return this.raids.updateOne({ active: true, guild }, { $set: { active: false } });
     }
 
     async getRaidDKPMovements(guild, raidId) {
-        const raid = await this.raids.findOne({ _id: raidId }, { projection: { attendance: 1 } });
+        const raid = await this.raids.findOne({ _id: raidId, guild }, { projection: { attendance: 1 } });
         //group attendance entries by comment untill different comment is found
         const attendance = raid.attendance.reduce((acc, entry, index) => {
             if (index === 0) {

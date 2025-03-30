@@ -83,7 +83,8 @@ module.exports = class Logger {
                         title: title,
                         description: logChunk.join('\n'),
                         fields: [
-                            { name: "Date", value: `<t:${Math.floor(now / 1000)}:d> <t:${Math.floor(now / 1000)}:t>` },
+                            { name: "Date", value: `<t:${Math.floor(now / 1000)}:d> <t:${Math.floor(now / 1000)}:t>`, inline: true },
+                            { name: "ID", value: raid._id, inline: true },
                         ]
                     }]
                 })

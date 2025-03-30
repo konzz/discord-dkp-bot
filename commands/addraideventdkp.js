@@ -58,10 +58,10 @@ module.exports = {
                 return singup.status === 'primary' && !attendance[singup.userId];
             });
 
-            interaction.reply(`Adding ${dkp} DKP to players that subscribed and attended raid event: ${eventJson.description} \n
-                ${eligiblePlayers.map(player => `${player.name}`).join(', ')} \n
-                This players subscribed but did not attend: \n
-                ${subscribedButNotAttended.map(player => `${player.name}`).join(', ')}`);
+            interaction.reply(`Adding ${dkp} DKP to players that subscribed and attended raid event: ${eventJson.description}
+                ${eligiblePlayers.map(player => `- ${player.name}`).join('\n')}
+                \nThis players subscribed but did not attend:
+                ${subscribedButNotAttended.map(player => `- ${player.name}`).join('\n')}`);
 
         }
         catch (error) {

@@ -54,7 +54,15 @@ module.exports = {
                 await manager.addDKP(guild, player.userId, dkp, `Subscribed and attended raid event ${eventJson.name}`, raid._id);
             });
 
-            interaction.reply(`Adding ${dkp} DKP to players that subscribed and attended raid event ${eventJson.description} \n ${eligiblePlayers.map(player => `${player.name}`).join(', ')} \n`);
+            const subscribedButNotAttended = eventJson.signUps.filter(singup => {
+                return singup.status === 'primary' && !attendance[singup.userId];
+            });
+
+            interaction.reply(`Adding ${dkp} DKP to players that subscribed and attended raid event: ${eventJson.description} \n
+                ${eligiblePlayers.map(player => `${player.name}`).join(', ')} \n
+                This players subscribed but did not attend: \n
+                ${subscribedButNotAttended.map(player => `${player.name}`).join(', ')}`);
+
         }
         catch (error) {
             console.log(error);

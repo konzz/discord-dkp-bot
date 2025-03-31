@@ -43,8 +43,12 @@ module.exports = {
                 return acc;
             }, {});
 
+            const totalAttendance = Object.keys(attendance).length;
+            const halfAttendance = Math.floor(totalAttendance / 2) || 1;
+
+
             const eligiblePlayers = eventJson.signUps.filter(singup => {
-                return singup.status === 'primary' && attendance[singup.userId] && attendance[singup.userId].count > 1;
+                return singup.status === 'primary' && attendance[singup.userId] && attendance[singup.userId].count > halfAttendance;
             });
             eligiblePlayers.forEach(async player => {
                 await manager.addDKP(guild, player.userId, dkp, `Subscribed and attended raid event ${eventJson.name}`, raid._id);
@@ -97,7 +101,7 @@ module.exports = {
                         embeds: [{
                             color: 15105570,
                             title: `Raid Event DKP - ${eventJson.description}`,
-                            description: `Adding ${dkp} DKP to players that subscribed and attended raid event: ${eventJson.description} with 50% attendance or more`,
+                            description: `Adding ${dkp} DKP to players that subscribed and attended raid event  with 50% attendance or more`,
                             fields: [
                                 { name: "Rewarded", value: `${rewardedNames.join('\n')}`, inline: true },
                                 { name: "NOT subscribed", value: `${attendedButNotSubscribedNames.join('\n')}`, inline: true },

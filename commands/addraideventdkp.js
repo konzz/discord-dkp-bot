@@ -48,7 +48,7 @@ module.exports = {
 
 
             const eligiblePlayers = eventJson.signUps.filter(singup => {
-                return singup.status === 'primary' && attendance[singup.userId] && attendance[singup.userId].count > halfAttendance;
+                return singup.status === 'primary' && attendance[singup.userId] && attendance[singup.userId].count >= halfAttendance;
             });
             eligiblePlayers.forEach(async player => {
                 await manager.addDKP(guild, player.userId, dkp, `Subscribed and attended raid event ${eventJson.name}`, raid._id);

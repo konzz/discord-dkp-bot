@@ -9,6 +9,7 @@ module.exports = {
         .addStringOption(option => option.setName('raidid').setDescription('Raid ID').setRequired(true))
         .addStringOption(option => option.setName('eventid').setDescription('Event ID').setRequired(true)),
     async execute(interaction, manager, logger) {
+        await interaction.deferReply({ ephemeral: true });
         const guild = interaction.guild.id;
         const dkp = interaction.options.getInteger('dkp');
         const raidid = interaction.options.getString('raidid');
@@ -16,14 +17,9 @@ module.exports = {
 
 
         const guildConfig = await manager.getGuildOptions(interaction.guild.id) || {};
-        const raidChannel = guildConfig.raidChannel;
-        if (!raidChannel) {
-            await interaction.reply(':prohibited: Please set the raid channel first with /setraidchannel', { ephemeral: true });
-            return;
-        }
+        const logChannel = await interaction.guild.channels.cache.get(guildConfig.logChannel);
 
         const eventUrl = `https://raid-helper.dev/api/v2/events/${eventid}`;
-        //fetch the event data
         try {
             const eventData = await fetch(eventUrl, {
                 method: 'GET',
@@ -34,7 +30,7 @@ module.exports = {
             const eventJson = await eventData.json();
             const raid = await manager.getRaidById(guild, new ObjectId(raidid));
             if (!raid) {
-                await interaction.reply(':prohibited: Raid not found', { ephemeral: true });
+                await interaction.editReply(':prohibited: Raid not found', { ephemeral: true });
                 return;
             }
             const attendance = raid.attendance.reduce((acc, entry) => {
@@ -58,10 +54,60 @@ module.exports = {
                 return singup.status === 'primary' && !attendance[singup.userId];
             });
 
-            interaction.reply(`Adding ${dkp} DKP to players that subscribed and attended raid event: ${eventJson.description}
-                ${eligiblePlayers.map(player => `- ${player.name}`).join('\n')}
-                \nThis players subscribed but did not attend:
-                ${subscribedButNotAttended.map(player => `- ${player.name}`).join('\n')}`);
+            const attendedButNotSubscribed = Object.keys(attendance).filter(player => {
+                return eligiblePlayers.findIndex(eligible => eligible.userId === player) === -1;
+            });
+
+            const rewardedNames = await Promise.all(eligiblePlayers.map(async p => {
+                try {
+                    const player = await interaction.guild.members.fetch(p.userId);
+                    return `- ${player.nickname || player.user.globalName || player.user.username}`;
+                }
+                catch (e) {
+                    console.log('Error fetching player:', e);
+                    return `- ${p.userId}`;
+                }
+            }));
+            subscribedButNotAttendedNames = await Promise.all(subscribedButNotAttended.map(async p => {
+                try {
+                    const player = await interaction.guild.members.fetch(p.userId);
+                    return `- ${player.nickname || player.user.globalName || player.user.username}`;
+                }
+                catch (e) {
+                    console.log('Error fetching player:', e);
+                    return `- ${p.userId}`;
+                }
+            }));
+
+            attendedButNotSubscribedNames = await Promise.all(attendedButNotSubscribed.map(async p => {
+                try {
+                    const player = await interaction.guild.members.fetch(p);
+                    return `- ${player.nickname || player.user.globalName || player.user.username}`;
+                }
+                catch (e) {
+                    console.log('Error fetching player:', e);
+                    return `- ${p}`;
+                }
+            }));
+
+            interaction.editReply({ content: `Adding ${dkp} DKP to players that subscribed and attended raid event: ${eventJson.description}`, ephemeral: true });
+            try {
+                await logChannel
+                    .send({
+                        embeds: [{
+                            color: 15105570,
+                            title: `Raid Event DKP - ${eventJson.description}`,
+                            description: `Adding ${dkp} DKP to players that subscribed and attended raid event: ${eventJson.description} with 50% attendance or more`,
+                            fields: [
+                                { name: "Rewarded", value: `${rewardedNames.join('\n')}`, inline: true },
+                                { name: "NOT subscribed", value: `${attendedButNotSubscribedNames.join('\n')}`, inline: true },
+                                { name: "Subscribed but NOT attended", value: `${subscribedButNotAttendedNames.join('\n')}`, inline: true },
+                            ],
+                        }]
+                    })
+            } catch (e) {
+                console.log('Error sending log message:', e);
+            }
 
         }
         catch (error) {

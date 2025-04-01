@@ -200,7 +200,7 @@ module.exports = class DKPManager {
             return { players: players.map(player => this.calculatePlayerAttendance(player, raids)), total: await this.players.countDocuments({ guild }) };
         }
         catch (e) {
-            console.error('Error listing players', e);
+            console.log('Error listing players', e);
             return [];
         }
     }

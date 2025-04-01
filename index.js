@@ -74,10 +74,7 @@ client.on(Events.InteractionCreate, async interaction => {
 		}
 		const errorLog = `[${new Date().toLocaleString()}] ${error}\n`;
 		fs.appendFileSync('error.log', errorLog);
-
-
-
-		console.error(`Error executing command ${interaction.commandName}: ${error}`);
+		console.log(`Error executing command ${interaction.commandName}: ${error}`);
 	}
 });
 

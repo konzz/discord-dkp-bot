@@ -45,21 +45,25 @@ module.exports = {
 
             const totalAttendance = Object.keys(attendance).length;
             const halfAttendance = Math.floor(totalAttendance / 2) || 1;
+            const attendanceRequired = halfAttendance > 10 ? 10 : halfAttendance;
 
 
             const eligiblePlayers = eventJson.signUps.filter(singup => {
-                return singup.status === 'primary' && attendance[singup.userId] && attendance[singup.userId].count >= halfAttendance;
+                return singup.status === 'primary' && attendance[singup.userId] && attendance[singup.userId].count >= attendanceRequired;
             });
-            eligiblePlayers.forEach(async player => {
-                await manager.addDKP(guild, player.userId, dkp, `Subscribed and attended raid event ${eventJson.name}`, raid._id);
-            });
+
+            if (dkp > 0) {
+                eligiblePlayers.forEach(async player => {
+                    await manager.addDKP(guild, player.userId, dkp, `Subscribed and attended raid event ${eventJson.name}`, raid._id);
+                });
+            }
 
             const subscribedButNotAttended = eventJson.signUps.filter(singup => {
                 return singup.status === 'primary' && !attendance[singup.userId];
             });
 
             const attendedButNotSubscribed = Object.keys(attendance).filter(player => {
-                return eligiblePlayers.findIndex(eligible => eligible.userId === player) === -1;
+                return eventJson.signUps.find(singup => singup.userId === player) === undefined && attendance[player].count >= attendanceRequired;
             });
 
             const rewardedNames = await Promise.all(eligiblePlayers.map(async p => {
@@ -72,7 +76,7 @@ module.exports = {
                     return `- ${p.userId}`;
                 }
             }));
-            subscribedButNotAttendedNames = await Promise.all(subscribedButNotAttended.map(async p => {
+            const subscribedButNotAttendedNames = await Promise.all(subscribedButNotAttended.map(async p => {
                 try {
                     const player = await interaction.guild.members.fetch(p.userId);
                     return `- ${player.nickname || player.user.globalName || player.user.username}`;
@@ -83,7 +87,7 @@ module.exports = {
                 }
             }));
 
-            attendedButNotSubscribedNames = await Promise.all(attendedButNotSubscribed.map(async p => {
+            const attendedButNotSubscribedNames = await Promise.all(attendedButNotSubscribed.map(async p => {
                 try {
                     const player = await interaction.guild.members.fetch(p);
                     return `- ${player.nickname || player.user.globalName || player.user.username}`;
@@ -94,6 +98,29 @@ module.exports = {
                 }
             }));
 
+            const notEnoughAttendance = eventJson.signUps.filter(singup => {
+                return singup.status === 'primary' && attendance[singup.userId] && attendance[singup.userId].count < attendanceRequired;
+            }
+            );
+
+            const notEnoughAttendanceNames = await Promise.all(notEnoughAttendance.map(async p => {
+                try {
+                    const player = await interaction.guild.members.fetch(p.userId);
+                    return `- ${player.nickname || player.user.globalName || player.user.username} (${attendance[p.userId].count} / ${attendanceRequired})`;
+                }
+                catch (e) {
+                    console.log('Error fetching player:', e);
+                    return `- ${p.userId}`;
+                }
+            }));
+
+
+            const rewarded = logger.playerChunks("Rewarded", rewardedNames, 10);
+            const notSubscribed = logger.playerChunks("NOT subscribed", attendedButNotSubscribedNames, 10);
+            const notAttended = logger.playerChunks("NOT attended", subscribedButNotAttendedNames, 10);
+            const notEnoughAttendanceChunks = logger.playerChunks("NOT enough attendance", notEnoughAttendanceNames, 10);
+
+
             interaction.editReply({ content: `Adding ${dkp} DKP to players that subscribed and attended raid event: ${eventJson.description}`, ephemeral: true });
             try {
                 await logChannel
@@ -101,11 +128,15 @@ module.exports = {
                         embeds: [{
                             color: 15105570,
                             title: `Raid Event DKP - ${eventJson.description}`,
-                            description: `Adding ${dkp} DKP to players that subscribed and attended raid event  with 50% attendance or more`,
+                            description: `Adding ${dkp} DKP to players that subscribed and attended raid event with over 50% participation or 1 hour`,
                             fields: [
-                                { name: "Rewarded", value: `${rewardedNames.join('\n')}`, inline: true },
-                                { name: "NOT subscribed", value: `${attendedButNotSubscribedNames.join('\n')}`, inline: true },
-                                { name: "Subscribed but NOT attended", value: `${subscribedButNotAttendedNames.join('\n')}`, inline: true },
+                                ...rewarded,
+                                { name: '\u200b', value: '\u200b', inline: false },
+                                ...notEnoughAttendanceChunks,
+                                { name: '\u200b', value: '\u200b', inline: false },
+                                ...notSubscribed,
+                                { name: '\u200b', value: '\u200b', inline: false },
+                                ...notAttended,
                             ],
                         }]
                     })

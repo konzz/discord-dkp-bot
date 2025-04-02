@@ -8,6 +8,33 @@ module.exports = class Logger {
         this.client = client;
     }
 
+    playerChunks(label, players, chunkSize = 15) {
+
+        if (!players.length) {
+            return [{
+                name: label,
+                value: 'No players',
+                inline: true
+            }]
+        }
+
+        const playerChunks = [];
+        while (players.length) {
+            playerChunks.push(players.splice(0, chunkSize));
+        }
+
+        const playerFields = playerChunks.map((chunk, index) => {
+            const name = index == 0 ? label : '\u200B';
+            return {
+                name,
+                value: chunk.join('\n'),
+                inline: true
+            }
+        })
+
+        return playerFields;
+    }
+
     async sendRaidEmebed(guildOptions, raid, playersInChannel, color, title, dkps = null) {
         const discordGuild = await this.client.guilds.fetch(guildOptions.guild);
         const logChannel = discordGuild.channels.cache.get(guildOptions.logChannel);
@@ -24,20 +51,7 @@ module.exports = class Logger {
         players = players.sort();
 
         const totalPlayers = players.length;
-
-        const playerChunks = [];
-        while (players.length) {
-            playerChunks.push(players.splice(0, 15));
-        }
-
-        const playerFields = playerChunks.map((chunk, index) => {
-            const name = index == 0 ? `Players (${totalPlayers})` : '\u200B';
-            return {
-                name,
-                value: chunk.join('\n'),
-                inline: true
-            }
-        })
+        const playerFields = this.playerChunks(`Players (${totalPlayers})`, players);
 
         try {
             await logChannel

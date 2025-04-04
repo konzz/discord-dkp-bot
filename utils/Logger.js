@@ -215,7 +215,7 @@ module.exports = class Logger {
                     timeButton.setStyle(ButtonStyle.Danger);
                 }
 
-                if (seconds >= 5 && auction.auctionActive) {
+                if (seconds >= 3 && auction.auctionActive) {
                     await message.edit({ components: [row] });
                 }
 

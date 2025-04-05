@@ -50,7 +50,7 @@ module.exports = {
             const statusesToIgnore = ['Absence', 'Bench'];
 
             const eligiblePlayers = eventJson.signUps.filter(singup => {
-                return statusesToIgnore.includes(singup.className) && attendance[singup.userId] && attendance[singup.userId].count >= attendanceRequired;
+                return !statusesToIgnore.includes(singup.className) && attendance[singup.userId] && attendance[singup.userId].count >= attendanceRequired;
             });
 
             if (dkp > 0) {
@@ -60,7 +60,7 @@ module.exports = {
             }
 
             const subscribedButNotAttended = eventJson.signUps.filter(singup => {
-                return statusesToIgnore.includes(singup.className) && !attendance[singup.userId];
+                return !statusesToIgnore.includes(singup.className) && !attendance[singup.userId];
             });
 
             const attendedButNotSubscribed = Object.keys(attendance).filter(player => {
@@ -100,7 +100,7 @@ module.exports = {
             }));
 
             const notEnoughAttendance = eventJson.signUps.filter(singup => {
-                return statusesToIgnore.includes(singup.className) && attendance[singup.userId] && attendance[singup.userId].count < attendanceRequired;
+                return !statusesToIgnore.includes(singup.className) && attendance[singup.userId] && attendance[singup.userId].count < attendanceRequired;
             }
             );
 

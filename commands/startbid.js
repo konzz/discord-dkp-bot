@@ -102,7 +102,7 @@ module.exports = {
                     });
 
                     if (auction.winner || auction.winners.length > 0) {
-                        const collectorFilter = i => i.user.id === interaction.user.id || i.member.roles.cache.has(officerRole);
+                        const collectorFilter = i => i.user.id === interaction.user.id; //|| i.member.roles.cache.has(officerRole);
                         const confirmWinCollector = message.createMessageComponentCollector({ componentType: ComponentType.Button, time: 360_000, filter: collectorFilter });
                         confirmWinCollector.on('collect', async i => {
                             if (i.customId.startsWith('confirm_' + auction.id)) {

@@ -176,19 +176,20 @@ module.exports = class DKPManager {
     }
 
     async getPlayer(guild, playerId, withAttendance = true) {
-        const raids = await this.raids.find({ guild, deprecated: false }).toArray();
+
         const player = await this.players.findOne({ player: playerId, guild });
         if (!player) {
             throw new Error('Player not found');
         }
         //get player position based on current dkp
-        const players = await this.players.find({ guild }).sort({ current: -1 }).toArray();
-        const position = players.findIndex(p => p.player === playerId) + 1;
-
+        //const players = await this.players.find({ guild }).sort({ current: -1 }).toArray();
+        //const position = players.findIndex(p => p.player === playerId) + 1;
+        const position = 0;
         if (!withAttendance) {
             return { ...player, position };
         }
 
+        const raids = await this.raids.find({ guild, deprecated: false }).toArray();
         return this.calculatePlayerAttendance({ ...player, position }, raids);
     }
 

@@ -7,6 +7,7 @@ module.exports = {
         .setDescription('Shows the DKP of a player')
         .addUserOption(option => option.setName('player').setDescription('The player').setRequired(false)),
     async execute(interaction, manager) {
+        interaction.deferReply({ ephemeral: true });
         const guild = interaction.guild.id;
         const player = interaction.options.getUser('player') || interaction.user;
 
@@ -16,7 +17,7 @@ module.exports = {
 
         try {
             const currentDKP = await manager.getPlayerDKP(guild, player.id);
-            await interaction.reply({ content: '` ' + currentDKP + ' ` DKP', ephemeral: true });
+            await interaction.editReply({ content: '` ' + currentDKP + ' ` DKP', ephemeral: true });
         } catch (e) {
             console.log(`Error getting playerdkp for player ${player.id}`, e);
         }

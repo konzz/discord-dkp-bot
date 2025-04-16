@@ -9,7 +9,7 @@ module.exports = {
         .addIntegerOption(option => option.setName('dkps').setDescription('The ammount of dkps').setRequired(true))
         .addBooleanOption(option => option.setName('bidformain').setDescription('Bid for main').setRequired(false)),
     async execute(interaction, manager) {
-        await interaction.deferReply();
+        await interaction.deferReply({ ephemeral: true });
         const guild = interaction.guild.id;
         const auctionId = interaction.options.getString('auctionid');
         const dkps = interaction.options.getInteger('dkps');

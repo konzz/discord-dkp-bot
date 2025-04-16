@@ -2,6 +2,16 @@ const { ButtonBuilder, ButtonStyle, ActionRowBuilder, ComponentType } = require(
 const Auctioner = require('../Auctioner/Auctioner');
 const uniqid = require('uniqid');
 
+//list of discord colors
+const colors = {
+    red: 15105570,
+    green: 3066993,
+    blue: 3447003,
+    yellow: 16776960,
+    purple: 10181046,
+    orange: 15105570
+}
+
 
 module.exports = class Logger {
     constructor(client) {
@@ -172,6 +182,98 @@ module.exports = class Logger {
         return result;
     };
 
+    async sendLongAuctionEmbed(guildOptions, auction, minBid = 0, numberOfItems = 1) {
+        const discordGuild = await this.client.guilds.fetch(guildOptions.guild);
+        const channel = discordGuild.channels.cache.get(guildOptions.auctionChannel);
+
+        let durationInMiliseconds = auction.auctionEnd - new Date().getTime();
+        if (durationInMiliseconds < 0) {
+            durationInMiliseconds = 0;
+        }
+
+        const embed = this.itemToEmbed(auction.item, colors.blue);
+        const hours = Math.floor(durationInMiliseconds / 1000 / 60 / 60);
+        const minutes = Math.floor((durationInMiliseconds / 1000 / 60) % 60);
+        const seconds = Math.floor((durationInMiliseconds / 1000) % 60);
+        const duration = `${hours}h ${minutes}m ${seconds}s`;
+
+        embed.fields = [
+            {
+                name: 'Auction ID',
+                value: "```" + auction._id + "```",
+                inline: true
+            },
+            {
+                name: 'Time left',
+                value: `${duration}`,
+                inline: true
+            }
+        ]
+        const message = await channel.send({
+            content: `Bid started - **${minBid} DKP** minimum bid. ${numberOfItems > 1 ? `Top **${numberOfItems}** bids win` : ''}`,
+            embeds: [embed]
+        })
+        //return embed identifier
+        return message.id;
+    }
+
+    async updateLongAuctionEmbed(guildOptions, auction) {
+        //using discordJS update the message embed fields
+        const longAuctionsChannel = guildOptions.longAuctionsChannel || guildOptions.auctionChannel;
+        const messageId = auction.messageId;
+        if (!messageId) {
+            console.log('No messageId found for auction');
+            return;
+        }
+        const channel = await this.client.channels.cache.get(longAuctionsChannel);
+        const message = await channel.messages.fetch(messageId);
+        if (!message) {
+            console.log('Message not found');
+            return;
+        }
+        let durationInMiliseconds = auction.auctionEnd - new Date().getTime();
+        if (durationInMiliseconds < 0) {
+            durationInMiliseconds = 0;
+        }
+        const hours = Math.floor(durationInMiliseconds / 1000 / 60 / 60);
+        const minutes = Math.floor((durationInMiliseconds / 1000 / 60) % 60);
+        const seconds = Math.floor((durationInMiliseconds / 1000) % 60);
+        const duration = `${hours}h ${minutes}m ${seconds}s`;
+        const hasWinners = auction.winners && auction.winners.length > 0;
+
+        const embed = this.itemToEmbed(auction.item, hasWinners ? colors.green : colors.blue);
+        embed.fields = [
+            {
+                name: 'Auction ID',
+                value: "```" + auction._id + "```",
+                inline: true
+            },
+            {
+                name: 'Time left',
+                value: `${duration}`,
+                inline: true
+            }
+        ]
+
+        if (hasWinners) {
+            embed.fields.push({
+                name: 'Winner/s',
+                value: auction.winners.map(winner => `<@${winner.player}> - ${winner.amount} ${winner.bidForMain ? '' : 'Alt'}`).join('\n'),
+                inline: false
+            })
+        }
+        if (hasWinners && auction.bids && auction.bids.length) {
+            embed.fields.push({
+                name: 'Bids',
+                value: auction.bids.map(bid => `${bid.amount} ${bid.bidForMain ? '' : 'Alt'}`).join('\n'),
+                inline: false
+            })
+        }
+        await message.edit({
+            embeds: [embed]
+        })
+    }
+
     async sendAuctionStartEmbed(guildOptions, auction, minBid = 0, numberOfItems = 1) {
         const discordGuild = await this.client.guilds.fetch(guildOptions.guild);
         const channel = discordGuild.channels.cache.get(guildOptions.auctionChannel);
@@ -269,7 +371,7 @@ module.exports = class Logger {
                 cancelButton.setDisabled(true);
                 cancelButton.setLabel('Auction Cancelled');
                 const row = new ActionRowBuilder().addComponents(cancelButton);
-                message.edit({ embeds: [{ ...embed, color: 15277667 }], components: [row] });
+                message.edit({ embeds: [{ ...embed, color: colors.red }], components: [row] });
                 collector.stop();
             }
         })

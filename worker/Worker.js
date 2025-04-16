@@ -1,4 +1,5 @@
 const Logger = require('../utils/Logger');
+const Auction = require('../Auctioner/Auction');
 
 module.exports = class Worker {
     constructor(client, manager) {
@@ -74,10 +75,36 @@ module.exports = class Worker {
         }
     }
 
+    async processAuctions(guilds) {
+        for (const guildOptions of guilds) {
+            const activeAuctions = await this.manager.getActiveAuctions(guildOptions.guild);
+            const finishedActiveAuctions = activeAuctions.filter(auction => auction.auctionEnd < new Date().getTime());
+            const unFinishedActiveAuctions = activeAuctions.filter(auction => auction.auctionEnd > new Date().getTime());
+            unFinishedActiveAuctions.forEach(auction => {
+                this.logger.updateLongAuctionEmbed(guildOptions, auction);
+            });
+
+            finishedActiveAuctions.forEach(async auctionData => {
+                //instantaite a new auction from ../Auctioner/Auction.js
+                const auction = new Auction(auctionData.guild, auctionData.item, auctionData.minBid, auctionData.numberOfItems, auctionData.minBidToLockForMain, auctionData.overBidtoWinMain);
+                auction.bids = auctionData.bids;
+                const players = await Promise.all(auction.bids.map(async bid => await this.manager.getPlayer(auctionData.guild, bid.player, false)));
+                const w = auction.calculateWinner(players);
+                auctionData.winners = [];
+                if (w) {
+                    auctionData.winners = w.length ? w : [w];
+                }
+
+                await this.manager.endAuction(guildOptions.guild, auctionData._id);
+                this.logger.updateLongAuctionEmbed(guildOptions, auctionData);
+            });
+        }
+    }
 
     async runFastTasks() {
         const guilds = await this.manager.guildOptions.find({}).toArray();
         await this.processRaids(guilds);
+        await this.processAuctions(guilds);
     }
 
     async runSlowTasks() {

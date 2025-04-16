@@ -10,6 +10,7 @@ module.exports = {
         .addChannelOption(option => option.setName('auctionchannel').setDescription('Channel to ouput Auctions').setRequired(true).addChannelTypes(ChannelType.GuildText))
         .addNumberOption(option => option.setName('raiddeprecationtime').setDescription('Time to deprecate raids for atendance (1 = 1 days)').setRequired(true))
         .addIntegerOption(option => option.setName('bidtime').setDescription('Bids time duration (1 = 1 second)').setMaxValue(1000).setMinValue(30).setRequired(true))
+        .addChannelOption(option => option.setName('longauctionchannel').setDescription('Channel to ouput Long Auctions').setRequired(false).addChannelTypes(ChannelType.GuildText))
         .addChannelOption(option => option.setName('secondraidchannel').setDescription('Second raid channel to take attendance').addChannelTypes(ChannelType.GuildVoice))
         .addIntegerOption(option => option.setName('minbidtolockformain').setDescription('Minimum bid to be main bid').setMinValue(0).setRequired(false))
         .addIntegerOption(option => option.setName('overbidtowinmain').setDescription('Over bid amount to win main bids as an alt').setMinValue(0).setRequired(false))
@@ -26,6 +27,7 @@ module.exports = {
 
         const logChannel = interaction.options.getChannel('logchannel');
         const auctionChannel = interaction.options.getChannel('auctionchannel');
+        const longAuctionChannel = interaction.options.getChannel('longauctionchannel');
         const role = interaction.options.getRole('role');
         const raidDeprecationTime = interaction.options.getNumber('raiddeprecationtime') * 86400000;
         const bidTime = interaction.options.getInteger('bidtime');
@@ -39,6 +41,7 @@ module.exports = {
             raidDeprecationTime,
             bidTime,
             auctionChannel: auctionChannel.id,
+            longAuctionChannel: longAuctionChannel?.id,
             secondRaidChannel: secondRaidChannel?.id,
             minBid,
             minBidToLockForMain,

@@ -1,3 +1,5 @@
+const { ObjectId } = require("mongodb");
+
 module.exports = class DKPManager {
     constructor(dbClient) {
         this.dbClient = dbClient;
@@ -6,6 +8,7 @@ module.exports = class DKPManager {
         this.raids = db.collection(`raids`);
         this.players = db.collection(`players`);
         this.guildOptions = db.collection(`options`);
+        this.auctions = db.collection(`auctions`);
     }
 
     async createRaid(guild, name, tickDuration = 60000 * 60, dkpsPerTick = 1) {
@@ -240,5 +243,99 @@ module.exports = class DKPManager {
 
     async getGuildOptions(guild) {
         return this.guildOptions.findOne({ guild });
+    }
+
+    async createAution(guild, item, minBid, numberOfItems, minBidToLockForMain, overBidtoWinMain, duration) {
+        const auction = {
+            guild,
+            item,
+            minBid,
+            numberOfItems,
+            minBidToLockForMain,
+            overBidtoWinMain,
+            bids: [],
+            auctionActive: true,
+            createdAt: new Date().getTime(),
+            auctionEnd: new Date().getTime() + duration,
+        };
+
+        const result = await this.auctions.insertOne(auction);
+        return this.auctions.findOne({ _id: result.insertedId });
+    }
+
+    async getAuction(guild, auctionId) {
+        const auction = await this.auctions.findOne({ _id: new ObjectId(auctionId), guild });
+        if (!auction) {
+            throw new Error('Auction not found');
+        }
+        return auction;
+    }
+
+    async getActiveAuctions(guild) {
+        return this.auctions.find({ guild, auctionActive: true }).toArray();
+    }
+
+    async getFinishedActiveAuctions(guild) {
+        const currentTime = new Date().getTime();
+        return this.auctions.find({ guild, auctionActive: true, auctionEnd: { $lt: currentTime } }).toArray();
+    }
+
+    async updateAuctionMessageId(guild, auctionId, messageId) {
+        const auction = await this.auctions.findOne({ _id: auctionId, guild });
+        if (!auction) {
+            throw new Error('Auction not found');
+        }
+        return this.auctions.updateOne({ _id: auction._id, guild }, { $set: { messageId } });
+    }
+
+    async endAuction(guild, auctionId) {
+        //check if auction is active
+        const auction = await this.auctions.findOne({ _id: new ObjectId(auctionId), guild });
+        if (!auction) {
+            throw new Error('Auction not found');
+        }
+        if (auction.auctionActive === false) {
+            throw new Error('Auction not active');
+        }
+
+        return this.auctions.updateOne({ _id: auction._id, guild }, { $set: { auctionActive: false } });
+    }
+
+    async bid(guild, auctionId, amount, player, bidForMain = true) {
+        if (amount <= 0) {
+            throw new Error('DKP - Bot scowls at you. Bid amount must be greater than 0');
+        }
+
+        if (!Number.isInteger(amount)) {
+            throw new Error('DKP - Bot scowls at you. Bid amount must be an integer');
+        }
+        //check if auction is active
+        const auction = await this.auctions.findOne({ _id: new ObjectId(auctionId), guild });
+        if (!auction) {
+            throw new Error('Auction not found');
+        }
+        if (auction.auctionActive === false) {
+            throw new Error('Auction not active');
+        }
+
+        if (amount > player.current) {
+            throw new Error(`DKP - Bot scowls at you. Bid amount is greater than player current DKP (${player.current})`);
+        }
+
+        if (amount < auction.minBid) {
+            throw new Error(`DKP - Bot scowls at you. Bid amount is less than the minimum bid (${this.minBid})`);
+        }
+
+        //auction contains player bid
+        if (auction.bids.find(bid => bid.player === player.player)) {
+            //update that player bid
+            return this.auctions.updateOne(
+                { _id: auction._id, guild, 'bids.player': player.player },
+                { $set: { 'bids.$.amount': amount, 'bids.$.bidForMain': bidForMain } },
+            );
+        } else {
+            //add bid
+            return this.auctions.updateOne({ _id: auction._id, guild }, { $push: { bids: { player: player.player, amount, bidForMain } } });
+        }
     }
 };

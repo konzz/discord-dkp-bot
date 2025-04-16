@@ -13,6 +13,7 @@ module.exports = {
 		const secondRaidChannel = guildConfig.secondRaidChannel ? interaction.guild.channels.cache.get(guildConfig.secondRaidChannel) : null;
 		const logChannel = guildConfig.logChannel ? interaction.guild.channels.cache.get(guildConfig.logChannel) : null;
 		const auctionChannel = guildConfig.auctionChannel ? interaction.guild.channels.cache.get(guildConfig.auctionChannel) : null;
+		const longAuctionChannel = guildConfig.longAuctionChannel ? interaction.guild.channels.cache.get(guildConfig.longAuctionChannel) : null;
 		const raidDeprecationTime = guildConfig.raidDeprecationTime || 0;
 		const bidTime = guildConfig.bidTime || 0;
 		const minBid = guildConfig.minBid || 0;
@@ -26,6 +27,7 @@ module.exports = {
 			{ name: 'Second raid channel', value: secondRaidChannel ? secondRaidChannel.name : 'Not set' },
 			{ name: 'Log channel', value: logChannel ? logChannel.name : 'Not set' },
 			{ name: 'Auction channel', value: auctionChannel ? auctionChannel.name : 'Not set' },
+			{ name: 'Long auction channel', value: longAuctionChannel ? longAuctionChannel.name : 'Not set' },
 			{ name: 'Bid time', value: bidTime ? `${bidTime} seconds` : 'Not set' },
 			{ name: 'Minimum bid', value: minBid ? `${minBid} DKP` : 'Not set' },
 			{ name: 'Minimum bid to lock for main', value: minBidToLockForMain ? `${minBidToLockForMain} DKP` : 'Not set' },

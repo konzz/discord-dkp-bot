@@ -84,7 +84,7 @@ module.exports = {
                 });
                 collector.stop();
 
-                const duration = hours * 60 * 1000;
+                const duration = hours * 60 * 60 * 1000;
                 //guild, item, minBid, numberOfItems, minBidToLockForMain, overBidtoWinMain, duration = 48
                 const auction = await manager.createAution(guild.id, item, minBid, numberOfItems, guildConfig.minBidToLockForMain, guildConfig.overBidtoWinMain, duration);
                 const messageId = await logger.sendLongAuctionEmbed(guildConfig, auction, minBid, numberOfItems);

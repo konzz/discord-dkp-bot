@@ -24,7 +24,6 @@ module.exports = {
             await interaction.editReply({ content: `Bid ${dkps} DKPs as ${bidForMain ? 'MAIN' : 'ALT'}  on ${auction.item.name} `, ephemeral: true });
         }
         catch (err) {
-            console.error(err);
             await interaction.editReply({ content: err.message, ephemeral: true });
         }
     },

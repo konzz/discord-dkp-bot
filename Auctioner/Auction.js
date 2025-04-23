@@ -97,7 +97,6 @@ module.exports = class Auction {
                     continue;
                 }
 
-
                 if (topAttendance[0].attendance > topAttendance[1].attendance) {
                     topBids.push(topAttendance[0]);
                     const index = filteredbids.findIndex(bid => bid.player === topAttendance[0].player);
@@ -114,8 +113,7 @@ module.exports = class Auction {
 
                 const winnerIndex = Math.floor(Math.random() * topAttendance.length);
                 topBids.push(filteredbids[winnerIndex]);
-                const index = filteredbids.findIndex(bid => bid.player === topAttendance[0].player);
-                filteredbids.splice(index, 1);
+                filteredbids.splice(winnerIndex, 1);
 
             }
         }
@@ -127,7 +125,6 @@ module.exports = class Auction {
         const [highestMainBid] = bids.filter(bid => bid.bidForMain).sort((a, b) => b.amount - a.amount);
         const mainBids = bids.filter(bid => (bid.bidForMain && bid.amount >= this.minBidToLockForMain) || (this.overBidtoWinMain && highestMainBid && bid.amount >= highestMainBid.amount + this.overBidtoWinMain));
         const altBids = bids.filter(bid => mainBids.findIndex(mainBid => mainBid.player === bid.player) === -1);
-
         const topMainBids = this.getTopBids(mainBids, numberOfWinners);
         const topAltBids = this.getTopBids(altBids, numberOfWinners);
 
@@ -163,6 +160,7 @@ module.exports = class Auction {
             }
         });
 
+
         this.bids = this.bids.filter(bid => bid.valid);
 
         if (this.bids.length === 0) {
@@ -172,7 +170,6 @@ module.exports = class Auction {
         const amountOfWinnersNeeded = this.numberOfItems > this.bids.length ? this.bids.length : this.numberOfItems;
 
         const winners = this.getWinners(this.bids, amountOfWinnersNeeded);
-
         if (this.numberOfItems > 1) {
             this.winners = winners.slice(0, this.numberOfItems);
             return this.winners;

@@ -347,6 +347,22 @@ describe('Auctioner', () => {
             expect(auction.numberOfItems).toBe(2);
             expect(auction.bids.length).toBe(2);
         })
+
+        it('should calculate the winner for multiple items when both bids are the same', async () => {
+            const item = 'item';
+            await manager.addDKP(guild, player1, 100, 'comment');
+            await manager.addDKP(guild, player2, 100, 'comment');
+
+            const callback = jest.fn();
+            const auction = auctioner.startAuction(item, guild, callback, { numberOfItems: 2, minBid: 15 });
+            await auctioner.bid(guild, auction.id, 20, player1);
+            await auctioner.bid(guild, auction.id, 20, player2);
+            await endSetTimeout();
+
+            //winers must be player1 and player2 in any order
+            expect(auction.winners.map(w => w.player).sort()).toEqual([player1, player2]);
+            expect(auction.numberOfItems).toBe(2);
+        });
     });
 
     describe('minBidToLockForMain', () => {

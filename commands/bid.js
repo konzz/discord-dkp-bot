@@ -20,6 +20,11 @@ module.exports = {
         const player = await manager.getPlayer(guild, interaction.user.id);
         try {
             const auction = await manager.getAuction(guild, auctionId);
+            if (dkps === 0) {
+                await manager.removeBid(guild, auctionId, player);
+                await interaction.editReply({ content: `Removed bid on ${auction.item.name}`, ephemeral: true });
+                return;
+            }
             await manager.bid(guild, auctionId, dkps, player, bidForMain);
             await interaction.editReply({ content: `Bid ${dkps} DKPs as ${bidForMain ? 'MAIN' : 'ALT'}  on ${auction.item.name} `, ephemeral: true });
         }

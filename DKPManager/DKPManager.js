@@ -301,6 +301,19 @@ module.exports = class DKPManager {
         return this.auctions.updateOne({ _id: auction._id, guild }, { $set: { auctionActive: false } });
     }
 
+    async removeBid(guild, auctionId, player) {
+        //check if auction is active
+        const auction = await this.auctions.findOne({ _id: new ObjectId(auctionId), guild });
+        if (!auction) {
+            throw new Error('Auction not found');
+        }
+        if (auction.auctionActive === false) {
+            throw new Error('Auction not active');
+        }
+
+        return this.auctions.updateOne({ _id: auction._id, guild }, { $pull: { bids: { player: player.player } } });
+    }
+
     async bid(guild, auctionId, amount, player, bidForMain = true) {
         if (amount <= 0) {
             throw new Error('DKP - Bot scowls at you. Bid amount must be greater than 0');

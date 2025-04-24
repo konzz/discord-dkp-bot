@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
+const log = require('../debugger.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -14,6 +15,14 @@ module.exports = {
         const comment = interaction.options.getString('comment');
         const activeRaid = await manager.getActiveRaid(guild);
         manager.removeDKP(guild, player.id, dkp, comment, activeRaid);
+
+        if (process.env.LOG_LEVEL === 'DEBUG') {
+            log(`Executed removedkp command`, {
+                player: player.id,
+                dkp,
+                comment
+            });
+        }
 
         await interaction.reply(`Removed ${dkp} DKPs from <@${player.id}>. ${comment}`);
     },

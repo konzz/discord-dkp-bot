@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
+const log = require('../debugger.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -36,6 +37,13 @@ module.exports = {
         playersInChannel.forEach(async player => {
             await manager.addDKP(guild, player, dkp, comment, activeRaid);
         });
+
+        if (process.env.LOG_LEVEL === 'DEBUG') {
+            log(`Executed addraiddkp command`, {
+                dkp,
+                comment
+            });
+        }
 
         await manager.addRaidAttendance(guild, activeRaid, playersInChannel, comment, dkp);
         await interaction.reply(`Added ${dkp} DKP to all players (${playersInChannel.length}) in the raid channel`, { ephemeral: true });

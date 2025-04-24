@@ -27,7 +27,7 @@ module.exports = {
         await interaction.deferReply();
         const guild = interaction.guild.id;
         try {
-            console.log('Creating backup');
+            log('Creating backup', { guild });
             const playersFile = await getBackUpFile(manager, guild, 'players');
             const raidsFile = await getBackUpFile(manager, guild, 'raids');
             //compress files

@@ -1,6 +1,7 @@
 require('dotenv').config()
 const { SlashCommandBuilder, Routes, ButtonBuilder, ActionRowBuilder, ButtonStyle } = require('discord.js');
 const uniqid = require('uniqid');
+const log = require('../debugger.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -9,7 +10,9 @@ module.exports = {
     async execute(interaction, manager, logger) {
         await interaction.deferReply({ ephemeral: true });
         if (process.env.LOG_LEVEL === 'DEBUG') {
-            console.log(`Executed listplayersdkps command`);
+            log(`Executed listplayersdkps command`, {
+                user: interaction.user.id,
+            });
         }
         const guild = interaction.guild.id;
         const alreadyActiveRaid = await manager.getActiveRaid(guild);

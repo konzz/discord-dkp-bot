@@ -1,5 +1,6 @@
 require('dotenv').config()
 const { SlashCommandBuilder } = require('discord.js');
+const log = require('../debugger.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -15,7 +16,11 @@ module.exports = {
         const comment = interaction.options.getString('comment');
 
         if (process.env.LOG_LEVEL === 'DEBUG') {
-            console.log(`Executed adddkp command with player: ${player.id}, dkp: ${dkp}, comment: ${comment}`);
+            log(`Executed adddkp command`, {
+                player: player.id,
+                dkp,
+                comment
+            });
         }
 
         manager.addDKP(guild, player.id, dkp, comment);

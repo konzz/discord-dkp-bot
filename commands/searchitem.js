@@ -1,6 +1,7 @@
 require('dotenv').config()
 const { SlashCommandBuilder } = require('discord.js');
 const ItemSearch = require('../search/ItemSearch');
+const log = require('../debugger.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -18,7 +19,10 @@ module.exports = {
         }
 
         if (process.env.LOG_LEVEL === 'DEBUG') {
-            console.log(`Executed searchitem command with search: ${search}`);
+            log(`Executed searchitem command`, {
+                search,
+                database
+            });
         }
 
         const itemSearch = new ItemSearch();

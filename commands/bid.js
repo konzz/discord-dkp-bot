@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const LogParser = require('../logParser/logParser');
+const log = require('../debugger.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -20,6 +20,13 @@ module.exports = {
         const player = await manager.getPlayer(guild, interaction.user.id);
         try {
             const auction = await manager.getAuction(guild, auctionId);
+            if (process.env.LOG_LEVEL === 'DEBUG') {
+                log(`Executed command bid`, {
+                    user: interaction.user.id,
+                    item: auction.item.name,
+                    dkps: dkps,
+                });
+            }
             if (dkps === 0) {
                 await manager.removeBid(guild, auctionId, player);
                 await interaction.editReply({ content: `Removed bid on ${auction.item.name}`, ephemeral: true });

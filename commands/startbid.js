@@ -2,7 +2,7 @@ const { SlashCommandBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, Compo
 const ItemSearch = require('../search/ItemSearch');
 const Auctioner = require('../Auctioner/Auctioner');
 const { playSound } = require('../utils/Player.js');
-const client = require('../db');
+const log = require('../debugger.js');
 
 const itemSearch = new ItemSearch();
 
@@ -117,14 +117,22 @@ module.exports = {
                                 if (auction.winner) {
                                     await manager.removeDKP(guild.id, auction.winner.player, auction.winner.amount, auction.item.name, raid, auction.item);
                                     if (process.env.LOG_LEVEL === 'DEBUG') {
-                                        console.log(`Removing ${auction.winner.amount} dkp from ${auction.winner.player}`);
+                                        log('Removing dkps from winer', {
+                                            player: auction.winner.player,
+                                            amount: auction.winner.amount,
+                                            item: auction.item.name
+                                        });
                                     }
                                 }
                                 else {
                                     auction.winners.forEach(async winner => {
                                         await manager.removeDKP(guild.id, winner.player, winner.amount, auction.item.name, raid, auction.item);
                                         if (process.env.LOG_LEVEL === 'DEBUG') {
-                                            console.log(`Removing ${winner.amount} dkp from ${winner.player}`);
+                                            log('Removing dkps from winer', {
+                                                player: auction.winner.player,
+                                                amount: auction.winner.amount,
+                                                item: auction.item.name
+                                            });
                                         }
                                     });
                                 }

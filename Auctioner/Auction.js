@@ -1,5 +1,6 @@
 require('dotenv').config()
 const uniqid = require('uniqid');
+const log = require('../debugger.js');
 
 module.exports = class Auction {
     constructor(guild, item, minBid = 0, numberOfItems = 1, minBidToLockForMain = 0, overBidtoWinMain = 0, checkAttendance = true) {
@@ -24,6 +25,13 @@ module.exports = class Auction {
     bid(amount, playerData, bidForMain = true) {
         if (!this.auctionActive) {
             throw new Error('Auction is not active');
+        }
+        if (process.env.LOG_LEVEL === 'DEBUG') {
+            log(`Registering bid for ${this.item.name}`, {
+                player: playerData.player,
+                amount,
+                bidForMain
+            });
         }
         this.validateBidAmount(amount, playerData);
 
@@ -140,9 +148,13 @@ module.exports = class Auction {
 
     calculateWinner(playersList) {
         if (process.env.LOG_LEVEL === 'DEBUG') {
-            console.log('--- Calculating winner ---');
-            console.log(this.bids);
-            console.log('--------------------------')
+            log('Calculating winners', {
+                item: this.item.name,
+                bids: this.bids,
+                numberOfItems: this.numberOfItems,
+                minBidToLockForMain: this.minBidToLockForMain,
+                overBidtoWinMain: this.overBidtoWinMain
+            });
         }
         if (this.bids.length === 0) {
             return null;
@@ -154,7 +166,11 @@ module.exports = class Auction {
             }
             catch (e) {
                 if (process.env.LOG_LEVEL === 'DEBUG') {
-                    console.log(`removing bid from ${bid.player} - ${bid.amount} because ${e.message}`);
+                    log('Removing invalid bid', {
+                        player: bid.player,
+                        amount: bid.amount,
+                        reason: e.message
+                    });
                 }
                 return { ...bid, valid: false, reason: e.message };
             }

@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { ObjectId } = require('mongodb');
+const log = require('../debugger.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -73,7 +74,7 @@ module.exports = {
                     return `- ${player.nickname || player.user.globalName || player.user.username}`;
                 }
                 catch (e) {
-                    console.log('Error fetching player:', e);
+                    log('Error fetching player:', e);
                     return `- ${p.userId}`;
                 }
             }));
@@ -83,7 +84,7 @@ module.exports = {
                     return `- ${player.nickname || player.user.globalName || player.user.username}`;
                 }
                 catch (e) {
-                    console.log('Error fetching player:', e);
+                    log('Error fetching player:', e);
                     return `- ${p.userId}`;
                 }
             }));
@@ -94,7 +95,7 @@ module.exports = {
                     return `- ${player.nickname || player.user.globalName || player.user.username}`;
                 }
                 catch (e) {
-                    console.log('Error fetching player:', e);
+                    log('Error fetching player:', e);
                     return `- ${p}`;
                 }
             }));
@@ -110,7 +111,7 @@ module.exports = {
                     return `- ${player.nickname || player.user.globalName || player.user.username} (${attendance[p.userId].count} / ${attendanceRequired})`;
                 }
                 catch (e) {
-                    console.log('Error fetching player:', e);
+                    log('Error fetching player:', e);
                     return `- ${p.userId}`;
                 }
             }));

@@ -129,8 +129,8 @@ module.exports = {
                                         await manager.removeDKP(guild.id, winner.player, winner.amount, auction.item.name, raid, auction.item);
                                         if (process.env.LOG_LEVEL === 'DEBUG') {
                                             log('Removing dkps from winer', {
-                                                player: auction.winner.player,
-                                                amount: auction.winner.amount,
+                                                player: winner.player,
+                                                amount: winner.amount,
                                                 item: auction.item.name
                                             });
                                         }

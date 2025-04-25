@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const fs = require('fs');
 const zip = new require('node-zip')();
+const log = require('../debugger.js');
 
 
 const getBackUpFile = async (manager, guild, collection) => {

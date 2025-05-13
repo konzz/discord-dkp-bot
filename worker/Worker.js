@@ -1,5 +1,6 @@
 const Logger = require('../utils/Logger');
 const Auction = require('../Auctioner/Auction');
+const log = require('../debugger.js');
 
 module.exports = class Worker {
     constructor(client, manager) {
@@ -94,7 +95,10 @@ module.exports = class Worker {
                 if (w) {
                     auctionData.winners = w.length ? w : [w];
                 }
-
+                log('Auction ended', {
+                    guild: auctionData.guild,
+                    item: auctionData.item.name,
+                });
                 await this.manager.endAuction(guildOptions.guild, auctionData._id);
                 this.logger.updateLongAuctionEmbed(guildOptions, auctionData);
             });

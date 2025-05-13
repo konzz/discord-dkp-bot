@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
+const { processRaidHelperEventDKP } = require('../utils/raidHelperUtils');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -6,6 +7,8 @@ module.exports = {
         .setDescription('End current raid'),
     async execute(interaction, manager, logger) {
         const guild = interaction.guild.id;
+        const guildConfig = await manager.getGuildOptions(guild) || {};
+
         const activeRaid = await manager.getActiveRaid(guild);
         if (!activeRaid) {
             await interaction.reply({ content: ':prohibited: There is no active raid', ephemeral: true });
@@ -14,7 +17,6 @@ module.exports = {
         await manager.endRaid(guild);
 
         await interaction.reply({ content: `Raid ${activeRaid.name} ended`, ephemeral: true });
-        const guildConfig = await manager.getGuildOptions(guild) || {};
         const raidChannel = await interaction.guild.channels.fetch(guildConfig.raidChannel);
         const playersInChannel = [...raidChannel.members.keys()];
 
@@ -41,6 +43,23 @@ module.exports = {
         }));
 
         logger.sendRaidEndEmbed(guildConfig, activeRaid, logMessage);
+
+        console.log(activeRaid);
+        if (activeRaid.eventId) {
+
+            const logChannel = await interaction.guild.channels.fetch(guildConfig.logChannel);
+            const result = await processRaidHelperEventDKP({
+                guild,
+                raidId: activeRaid._id,
+                eventId: activeRaid.eventId,
+                dkp: 5,
+                manager,
+                guildInstance: interaction.guild,
+                logger,
+                logChannel
+            })
+        }
+
     },
     restricted: true,
 };

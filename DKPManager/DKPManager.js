@@ -11,7 +11,7 @@ module.exports = class DKPManager {
         this.auctions = db.collection(`auctions`);
     }
 
-    async createRaid(guild, name, tickDuration = 60000 * 60, dkpsPerTick = 1) {
+    async createRaid(guild, name, tickDuration = 60000 * 60, dkpsPerTick = 1, eventId = null) {
         const alreadyActiveRaid = await this.raids.findOne({ guild, active: true });
         if (alreadyActiveRaid) {
             throw new Error('There is already an active raid');
@@ -27,6 +27,7 @@ module.exports = class DKPManager {
             dkpsPerTick,
             active: true,
             deprecated: false,
+            eventId,
         });
 
         return this.raids.findOne({ _id: result.insertedId });
@@ -196,12 +197,26 @@ module.exports = class DKPManager {
         return this.calculatePlayerAttendance({ ...player, position }, raids);
     }
 
-    async listPlayers(guild, page = 0, pageSize = 10) {
+    async listPlayers(guild, page = 0, pageSize = 10, lastPlayerActivity = null) {
         try {
-            const players = await this.players.find({ guild }).sort({ current: -1 }).skip(page * pageSize).limit(pageSize).toArray();
+            const query = { guild };
+            if (lastPlayerActivity) {
+                const cutoffTime = new Date().getTime() - lastPlayerActivity;
+                query['log.date'] = { $gte: cutoffTime };
+            }
+
+            const players = await this.players.find(query)
+                .sort({ current: -1 })
+                .skip(page * pageSize)
+                .limit(pageSize)
+                .toArray();
+
             const raids = await this.raids.find({ guild, deprecated: false }).toArray();
 
-            return { players: players.map(player => this.calculatePlayerAttendance(player, raids)), total: await this.players.countDocuments({ guild }) };
+            return {
+                players: players.map(player => this.calculatePlayerAttendance(player, raids)),
+                total: await this.players.countDocuments(query)
+            };
         }
         catch (e) {
             console.log('Error listing players', e);

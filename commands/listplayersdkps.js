@@ -9,6 +9,10 @@ module.exports = {
         .setDescription('List all players and their current DKP'),
     async execute(interaction, manager, logger) {
         await interaction.deferReply({ ephemeral: true });
+        const guildConfig = await manager.getGuildOptions(interaction.guild.id)
+        const lastPlayerActivityInMs = guildConfig.raidDeprecationTime;
+        const lastPlayerActivity = new Date(Date.now() - lastPlayerActivityInMs);
+
         if (process.env.LOG_LEVEL === 'DEBUG') {
             log(`Executed listplayersdkps command`, {
                 user: interaction.user.id,
@@ -22,7 +26,7 @@ module.exports = {
         }
         let currentPage = 0;
         const pageSize = 10;
-        let { players, total } = await manager.listPlayers(guild, currentPage, pageSize);
+        let { players, total } = await manager.listPlayers(guild, currentPage, pageSize, lastPlayerActivity);
 
         if (total === 0) {
             await interaction.editReply({ content: ':prohibited: No players found', ephemeral: true });
@@ -77,7 +81,7 @@ module.exports = {
                 nextPageButton.setDisabled(false);
             }
 
-            const { players } = await manager.listPlayers(guild, currentPage, pageSize);
+            const { players } = await manager.listPlayers(guild, currentPage, pageSize, lastPlayerActivity);
 
             const embed = logger.playerListToEmbed(players, currentPlayer, currentPage, pageSize);
             embed.author = {

@@ -79,7 +79,7 @@ module.exports = {
                 nextPageButton.setDisabled(false);
             }
 
-            const { players } = await manager.listPlayers(guild, currentPage, pageSize, lastPlayerActivity);
+            const { players } = await manager.listPlayers(guild, currentPage, pageSize, guildConfig.raidDeprecationTime);
 
             const embed = logger.playerListToEmbed(players, currentPlayer, currentPage, pageSize);
             embed.author = {

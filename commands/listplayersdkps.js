@@ -10,8 +10,6 @@ module.exports = {
     async execute(interaction, manager, logger) {
         await interaction.deferReply({ ephemeral: true });
         const guildConfig = await manager.getGuildOptions(interaction.guild.id)
-        const lastPlayerActivityInMs = guildConfig.raidDeprecationTime;
-        const lastPlayerActivity = Date.now() - lastPlayerActivityInMs;
 
         if (process.env.LOG_LEVEL === 'DEBUG') {
             log(`Executed listplayersdkps command`, {
@@ -26,7 +24,7 @@ module.exports = {
         }
         let currentPage = 0;
         const pageSize = 10;
-        let { players, total } = await manager.listPlayers(guild, currentPage, pageSize, lastPlayerActivity);
+        let { players, total } = await manager.listPlayers(guild, currentPage, pageSize, guildConfig.raidDeprecationTime);
 
         if (total === 0) {
             await interaction.editReply({ content: ':prohibited: No players found', ephemeral: true });

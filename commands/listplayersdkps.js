@@ -11,7 +11,7 @@ module.exports = {
         await interaction.deferReply({ ephemeral: true });
         const guildConfig = await manager.getGuildOptions(interaction.guild.id)
         const lastPlayerActivityInMs = guildConfig.raidDeprecationTime;
-        const lastPlayerActivity = new Date(Date.now() - lastPlayerActivityInMs);
+        const lastPlayerActivity = Date.now() - lastPlayerActivityInMs;
 
         if (process.env.LOG_LEVEL === 'DEBUG') {
             log(`Executed listplayersdkps command`, {

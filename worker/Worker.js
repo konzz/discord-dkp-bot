@@ -79,6 +79,7 @@ module.exports = class Worker {
     async processAuctions(guilds) {
         for (const guildOptions of guilds) {
             const activeAuctions = await this.manager.getActiveAuctions(guildOptions.guild);
+            console.log(activeAuctions);
             const finishedActiveAuctions = activeAuctions.filter(auction => auction.auctionEnd < new Date().getTime());
             const unFinishedActiveAuctions = activeAuctions.filter(auction => auction.auctionEnd > new Date().getTime());
             unFinishedActiveAuctions.forEach(auction => {
@@ -99,7 +100,7 @@ module.exports = class Worker {
                     guild: auctionData.guild,
                     item: auctionData.item.name,
                 });
-                await this.manager.endAuction(guildOptions.guild, auctionData._id);
+                await this.manager.endAuction(guildOptions.guild, auctionData._id, auctionData.winners);
                 this.logger.updateLongAuctionEmbed(guildOptions, auctionData);
             });
         }

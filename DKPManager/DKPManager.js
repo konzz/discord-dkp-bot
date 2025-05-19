@@ -303,7 +303,7 @@ module.exports = class DKPManager {
         return this.auctions.updateOne({ _id: auction._id, guild }, { $set: { messageId } });
     }
 
-    async endAuction(guild, auctionId) {
+    async endAuction(guild, auctionId, winners) {
         //check if auction is active
         const auction = await this.auctions.findOne({ _id: new ObjectId(auctionId), guild });
         if (!auction) {
@@ -313,7 +313,7 @@ module.exports = class DKPManager {
             throw new Error('Auction not active');
         }
 
-        return this.auctions.updateOne({ _id: auction._id, guild }, { $set: { auctionActive: false } });
+        return this.auctions.updateOne({ _id: auction._id, guild }, { $set: { auctionActive: false, winners } });
     }
 
     async removeBid(guild, auctionId, player) {

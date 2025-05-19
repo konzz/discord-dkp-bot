@@ -210,7 +210,7 @@ module.exports = class Logger {
             }
         ]
         const message = await channel.send({
-            content: `Bid started - **${minBid} DKP** minimum bid. ${numberOfItems > 1 ? `Top **${numberOfItems}** bids win` : ''}`,
+            content: `Bid started - **${minBid} DKP** minimum bid. ${numberOfItems > 1 ? `Top **${numberOfItems}** bids win. Should end at <t:${Math.floor(auction.auctionEnd / 1000)}:f>` : ''}`,
             embeds: [embed]
         })
         //return embed identifier
@@ -229,6 +229,7 @@ module.exports = class Logger {
         try {
             const message = await channel.messages.fetch(messageId);
             let durationInMiliseconds = auction.auctionEnd - new Date().getTime();
+            console.log(durationInMiliseconds);
             if (durationInMiliseconds < 0) {
                 durationInMiliseconds = 0;
             }
@@ -270,6 +271,7 @@ module.exports = class Logger {
                 embeds: [embed]
             })
         } catch (e) {
+            console.log(e);
             return false
         }
     }

@@ -229,7 +229,6 @@ module.exports = class Logger {
         try {
             const message = await channel.messages.fetch(messageId);
             let durationInMiliseconds = auction.auctionEnd - new Date().getTime();
-            console.log(durationInMiliseconds);
             if (durationInMiliseconds < 0) {
                 durationInMiliseconds = 0;
             }

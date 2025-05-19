@@ -104,8 +104,7 @@ module.exports = class Worker {
                     guild: auctionData.guild,
                     item: auctionData.item.name,
                 });
-                //await this.manager.endAuction(guildOptions.guild, auctionData._id, auctionData.winners);
-                console.log("Updating auction embed", auctionData.item.name);
+                await this.manager.endAuction(guildOptions.guild, auctionData._id, auctionData.winners);
                 this.logger.updateLongAuctionEmbed(guildOptions, auctionData);
             });
         }

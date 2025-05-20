@@ -12,6 +12,7 @@ module.exports = class Worker {
     async start() {
         console.log('Worker started');
         this.fastInterval = setInterval(() => this.runFastTasks(), 10000); // 10 seconds
+        this.mediumInterval = setInterval(() => this.runMediumTasks(), 60000); // 1 minute
         this.slowInterval = setInterval(() => this.runSlowTasks(), 60 * 60 * 1000); // 1 hour
     }
 
@@ -113,6 +114,10 @@ module.exports = class Worker {
     async runFastTasks() {
         const guilds = await this.manager.guildOptions.find({}).toArray();
         await this.processRaids(guilds);
+    }
+
+    async runMediumTasks() {
+        const guilds = await this.manager.guildOptions.find({}).toArray();
         await this.processAuctions(guilds);
     }
 

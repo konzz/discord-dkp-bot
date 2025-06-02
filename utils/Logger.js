@@ -192,10 +192,6 @@ module.exports = class Logger {
         }
 
         const embed = this.itemToEmbed(auction.item, colors.blue);
-        const hours = Math.floor(durationInMiliseconds / 1000 / 60 / 60);
-        const minutes = Math.floor((durationInMiliseconds / 1000 / 60) % 60);
-        const seconds = Math.floor((durationInMiliseconds / 1000) % 60);
-        const duration = `${hours}h ${minutes}m ${seconds}s`;
 
         embed.fields = [
             {
@@ -204,8 +200,8 @@ module.exports = class Logger {
                 inline: true
             },
             {
-                name: 'Time left',
-                value: `${duration}`,
+                name: 'Auction ends',
+                value: `<t:${Math.floor(auction.auctionEnd / 1000)}:R>`,
                 inline: true
             }
         ]
@@ -228,17 +224,7 @@ module.exports = class Logger {
         const channel = await this.client.channels.cache.get(longAuctionChannel);
         try {
             const message = await channel.messages.fetch(messageId);
-            let durationInMiliseconds = auction.auctionEnd - new Date().getTime();
-            if (durationInMiliseconds < 0) {
-                durationInMiliseconds = 0;
-            }
-            const hours = Math.floor(durationInMiliseconds / 1000 / 60 / 60);
-            const minutes = Math.floor((durationInMiliseconds / 1000 / 60) % 60);
-            const seconds = Math.floor((durationInMiliseconds / 1000) % 60);
-            const duration = `${hours}h ${minutes}m ${seconds}s`;
-            const hasWinners = auction.winners && auction.winners.length > 0;
-
-            const embed = this.itemToEmbed(auction.item, hasWinners ? colors.green : colors.blue);
+            const embed = this.itemToEmbed(auction.item, colors.green);
             embed.fields = [
                 {
                     name: 'Auction ID',
@@ -246,26 +232,24 @@ module.exports = class Logger {
                     inline: true
                 },
                 {
-                    name: 'Time left',
-                    value: `${duration}`,
+                    name: 'Auction ends',
+                    value: `<t:${Math.floor(auction.auctionEnd / 1000)}:R>`,
                     inline: true
                 }
             ]
 
-            if (hasWinners) {
-                embed.fields.push({
-                    name: 'Winner/s',
-                    value: auction.winners.map(winner => `<@${winner.player}> - ${winner.amount} ${winner.bidForMain ? '' : 'Alt'}`).join('\n'),
-                    inline: false
-                })
-            }
-            if (hasWinners && auction.bids && auction.bids.length) {
-                embed.fields.push({
-                    name: 'Bids',
-                    value: auction.bids.map(bid => `${bid.amount} ${bid.bidForMain ? '' : 'Alt'}`).join('\n'),
-                    inline: false
-                })
-            }
+            embed.fields.push({
+                name: 'Winner/s',
+                value: auction.winners?.map(winner => `<@${winner.player}> - ${winner.amount} ${winner.bidForMain ? '' : 'Alt'}`).join('\n'),
+                inline: false
+            })
+
+            embed.fields.push({
+                name: 'Bids',
+                value: auction.bids?.map(bid => `${bid.amount} ${bid.bidForMain ? '' : 'Alt'}`).join('\n'),
+                inline: false
+            })
+
             await message.edit({
                 embeds: [embed]
             })
@@ -285,47 +269,26 @@ module.exports = class Logger {
             return;
         }
 
+        const auctionEndTimestamp = Math.floor(new Date().getTime() / 1000) + bidTime;
+
         const button = new ButtonBuilder().setCustomId('bid_' + auction.id).setLabel('I want to bid').setStyle(ButtonStyle.Primary);
         const buttonAlt = new ButtonBuilder().setCustomId('bid_alt' + auction.id).setLabel('Bid for Alter').setStyle(ButtonStyle.Secondary)
-        const timeButton = new ButtonBuilder().setCustomId('time_' + auction.id).setLabel(this.formatSeconds(bidTime)).setStyle(ButtonStyle.Secondary).setDisabled(true);
         const cancelButton = new ButtonBuilder().setCustomId('cancel_' + auction.id).setLabel('Cancel').setStyle(ButtonStyle.Danger);
-        const row = new ActionRowBuilder().addComponents(button, buttonAlt, timeButton, cancelButton);
+        const row = new ActionRowBuilder().addComponents(button, buttonAlt, cancelButton);
 
         const embed = this.itemToEmbed(auction.item, 15105570);
+        embed.fields = [
+            {
+                name: 'Auction ends',
+                value: `<t:${auctionEndTimestamp}:R>`,
+                inline: true
+            },
+        ]
         const message = await channel.send({
             content: `Bid started - **${minBid} DKP** minimum bid. ${numberOfItems > 1 ? `Top **${numberOfItems}** bids win` : ''}`,
             embeds: [embed],
             components: [row]
         })
-
-        let seconds = bidTime;
-        let lastUpdate = Date.now();
-        const updateMessage = async () => {
-            while (seconds > 0) {
-                const now = Date.now();
-                const deltaSeconds = Math.round((now - lastUpdate) / 1000);
-
-                seconds -= deltaSeconds;
-                lastUpdate = now;
-
-                timeButton.setLabel(this.formatSeconds(seconds));
-                if (seconds < 1) {
-                    button.setDisabled(true);
-                    buttonAlt.setDisabled(true);
-                }
-
-                if (seconds < 11) {
-                    timeButton.setStyle(ButtonStyle.Danger);
-                }
-
-                if (seconds >= 3 && auction.auctionActive) {
-                    await message.edit({ components: [row] });
-                }
-
-                await new Promise(resolve => setTimeout(resolve, 5000));
-            }
-        }
-        updateMessage();
 
         const collector = message.createMessageComponentCollector({ componentType: ComponentType.Button, time: bidTime * 1000 });
         collector.on('collect', async i => {

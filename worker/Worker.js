@@ -85,11 +85,6 @@ module.exports = class Worker {
             }
 
             const finishedActiveAuctions = activeAuctions.filter(auction => auction.auctionEnd < new Date().getTime());
-            const unFinishedActiveAuctions = activeAuctions.filter(auction => auction.auctionEnd > new Date().getTime());
-
-            unFinishedActiveAuctions.forEach(auction => {
-                this.logger.updateLongAuctionEmbed(guildOptions, auction);
-            });
 
             finishedActiveAuctions.forEach(async auctionData => {
                 //instantaite a new auction from ../Auctioner/Auction.js
@@ -104,6 +99,7 @@ module.exports = class Worker {
                 log('Auction ended', {
                     guild: auctionData.guild,
                     item: auctionData.item.name,
+                    winners: auctionData.winners,
                 });
                 await this.manager.endAuction(guildOptions.guild, auctionData._id, auctionData.winners);
                 this.logger.updateLongAuctionEmbed(guildOptions, auctionData);

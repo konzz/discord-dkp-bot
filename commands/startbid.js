@@ -156,7 +156,7 @@ module.exports = {
                     }
                 };
 
-                const bidTime = guildConfig.bidTime + 5;
+                const bidTime = guildConfig.bidTime;
                 const startedAuction = await Auctioner.instance.startAuction(
                     item,
                     guild.id,

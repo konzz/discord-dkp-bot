@@ -84,5 +84,5 @@ module.exports = {
             await interaction.editReply({ embeds: [logsEmbed], components: [row], ephemeral: true });
         });
     },
-    restricted: true,
+    restricted: false,
 };

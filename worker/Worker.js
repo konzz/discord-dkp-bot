@@ -11,14 +11,15 @@ module.exports = class Worker {
 
     async start() {
         console.log('Worker started');
-        this.fastInterval = setInterval(() => this.runFastTasks(), 10000); // 10 seconds
-        this.mediumInterval = setInterval(() => this.runMediumTasks(), 60000); // 1 minute
-        this.slowInterval = setInterval(() => this.runSlowTasks(), 60 * 60 * 1000); // 1 hour
+        this.fastInterval = setInterval(() => this.runFastTasks(), 10 * 1000);
+        this.mediumInterval = setInterval(() => this.runMediumTasks(), 60 * 1000);
+        this.slowInterval = setInterval(() => this.runSlowTasks(), 60 * 60 * 1000);
     }
 
     stop() {
         console.log('Worker stopped');
         clearInterval(this.fastInterval);
+        clearInterval(this.mediumInterval);
         clearInterval(this.slowInterval);
     }
 

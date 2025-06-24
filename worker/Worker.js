@@ -85,7 +85,8 @@ module.exports = class Worker {
                 continue;
             }
 
-            const finishedActiveAuctions = activeAuctions.filter(auction => auction.auctionEnd < new Date().getTime());
+            const extraTimeBeforeReporting = 1000 * 60 * 20; //20 minutes
+            const finishedActiveAuctions = activeAuctions.filter(auction => auction.auctionEnd < new Date().getTime() - extraTimeBeforeReporting);
 
             finishedActiveAuctions.forEach(async auctionData => {
                 //instantaite a new auction from ../Auctioner/Auction.js

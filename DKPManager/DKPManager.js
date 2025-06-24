@@ -342,8 +342,8 @@ module.exports = class DKPManager {
         if (!auction) {
             throw new Error('Auction not found');
         }
-        if (auction.auctionActive === false) {
-            throw new Error('Auction not active');
+        if (auction.auctionEnd < new Date().getTime()) {
+            throw new Error('Auction has ended');
         }
 
         if (amount > player.current) {

@@ -8,6 +8,7 @@ module.exports = {
         .addChannelOption(option => option.setName('raidchannel').setDescription('The raid channel where members must be during raid').setRequired(true).addChannelTypes(ChannelType.GuildVoice))
         .addChannelOption(option => option.setName('logchannel').setDescription('Channel to ouput DKP log movements').setRequired(true).addChannelTypes(ChannelType.GuildText))
         .addChannelOption(option => option.setName('auctionchannel').setDescription('Channel to ouput Auctions').setRequired(true).addChannelTypes(ChannelType.GuildText))
+        .addNumberOption(option => option.setName('tickduration').setDescription('Time between ticks (1 = 1m, 0,5 = 30s, 10 = 10m)').setMinValue(0.1).setRequired(false))
         .addNumberOption(option => option.setName('raiddeprecationtime').setDescription('Time to deprecate raids for atendance (1 = 1 days)').setRequired(false))
         .addIntegerOption(option => option.setName('bidtime').setDescription('Bids time duration (1 = 1 second)').setMaxValue(1000).setMinValue(30).setRequired(false))
         .addChannelOption(option => option.setName('longauctionchannel').setDescription('Channel to ouput Long Auctions').setRequired(false).addChannelTypes(ChannelType.GuildText))
@@ -36,6 +37,7 @@ module.exports = {
         const minBidToLockForMain = interaction.options.getInteger('minbidtolockformain') || guildConfig.minBidToLockForMain;
         const overBidtoWinMain = interaction.options.getInteger('overbidtowinmain') || guildConfig.overBidtoWinMain;
         const raidHelperAPIKey = interaction.options.getString('raidhelperapikey') || guildConfig.raidHelperAPIKey;
+        const tickDuration = interaction.options.getNumber('tickduration') * 60000 || guildConfig.tickDuration;
         await manager.saveGuildOptions(guild, {
             raidChannel: raidChannel.id,
             adminRole: role.id,
@@ -49,6 +51,7 @@ module.exports = {
             minBidToLockForMain,
             overBidtoWinMain,
             raidHelperAPIKey,
+            tickDuration,
         });
 
         await interaction.reply({ content: 'Configuration saved', ephemeral: true });

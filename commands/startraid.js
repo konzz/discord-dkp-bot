@@ -6,13 +6,14 @@ module.exports = {
         .setDescription('Create a new raid')
         .addStringOption(option => option.setName('name').setDescription('Name'))
         .addIntegerOption(option => option.setName('dkpspertick').setDescription('The amount of DKP to add each tick').setMinValue(0))
-        .addNumberOption(option => option.setName('tickduration').setDescription('Time between ticks (1 = 6m, 0,5 = 3m, 10 = 1h)').setMinValue(0.1)),
+        .addNumberOption(option => option.setName('tickduration').setDescription('Time between ticks (1 = 1m, 0,5 = 30s, 10 = 10m)').setMinValue(0.1)),
     async execute(interaction, manager, logger) {
         const guild = interaction.guild.id;
         let name = interaction.options.getString('name');
-        const dkpsPerTick = interaction.options.getInteger('dkpspertick') || 1;
-        const tickDuration = interaction.options.getNumber('tickduration') * 6 * 60000 || 6 * 60000;
         const guildConfig = await manager.getGuildOptions(guild) || {};
+        const dkpsPerTick = interaction.options.getInteger('dkpspertick') || 1;
+        const tickDuration = interaction.options.getNumber('tickduration') * 60000 || 6 * 60000;
+
         const raidChannel = guildConfig.raidChannel;
         let eventId = null;
 

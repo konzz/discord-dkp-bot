@@ -19,6 +19,7 @@ module.exports = {
 		const minBid = guildConfig.minBid || 0;
 		const minBidToLockForMain = guildConfig.minBidToLockForMain || 0;
 		const overBidtoWinMain = guildConfig.overBidtoWinMain || 0;
+		const tickDuration = guildConfig.tickDuration || 0;
 
 		const config = [
 			{ name: 'DKP Officer role', value: adminRole ? adminRole.name : 'Not set' },
@@ -29,6 +30,7 @@ module.exports = {
 			{ name: 'Auction channel', value: auctionChannel ? auctionChannel.name : 'Not set' },
 			{ name: 'Long auction channel', value: longAuctionChannel ? longAuctionChannel.name : 'Not set' },
 			{ name: 'Bid time', value: bidTime ? `${bidTime} seconds` : 'Not set' },
+			{ name: 'Tick duration', value: tickDuration ? `${tickDuration / 60000} minutes` : 'Not set' },
 			{ name: 'Minimum bid', value: minBid ? `${minBid} DKP` : 'Not set' },
 			{ name: 'Minimum bid to lock for main', value: minBidToLockForMain ? `${minBidToLockForMain} DKP` : 'Not set' },
 			{ name: 'Over bid to win main', value: overBidtoWinMain ? `${overBidtoWinMain} DKP` : 'Not set' },

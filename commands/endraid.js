@@ -44,7 +44,6 @@ module.exports = {
 
         logger.sendRaidEndEmbed(guildConfig, activeRaid, logMessage);
 
-        console.log(activeRaid);
         if (activeRaid.eventId) {
 
             const logChannel = await interaction.guild.channels.fetch(guildConfig.logChannel);

@@ -93,7 +93,11 @@ module.exports = {
                     row.addComponents(confirmButton);
                     embed.fields = [
                         { name: 'Winner/s', value: winnerMessage(auction) },
-                        { name: 'Bids', value: auction.bids.sort((a, b) => b.amount - a.amount).map(bid => `- ${bid.amount}${bid.bidForMain ? '' : ' - alter'}`).join('\n') }
+                        { name: 'Bids', value: auction.bids.sort((a, b) => b.amount - a.amount).map(bid => `- ${bid.amount}${bid.bidForMain ? '' : ' - alter'}`).join('\n') },
+                        {
+                            name: 'Auction ID',
+                            value: "```" + auction._id + "```",
+                        },
                     ];
 
                     await message.edit({

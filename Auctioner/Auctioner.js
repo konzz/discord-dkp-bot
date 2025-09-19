@@ -34,6 +34,17 @@ class Auctioner {
             const players = await Promise.all(auction.bids.map(async bid => await this.dkpManager.getPlayer(guild, bid.player, checkAttendance)));
             auction.endAuction();
             auction.calculateWinner(players);
+
+            // Store the short auction in the database when it ends
+            if (this.dkpManager) {
+                try {
+                    const storedAuction = await this.dkpManager.storeShortAuction(guild, auction);
+                    auction._id = storedAuction._id;
+                } catch (error) {
+                    console.error('Failed to store short auction in database:', error);
+                }
+            }
+
             callback(auction);
             this.removeAuction(auction.id);
         }, duration);
@@ -41,7 +52,7 @@ class Auctioner {
         return auction;
     }
 
-    cancelAuction(auctionId) {
+    async cancelAuction(auctionId) {
         const auction = this.getAuction(auctionId);
         auction.endAuction();
         this.removeAuction(auctionId);

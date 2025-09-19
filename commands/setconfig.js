@@ -56,4 +56,5 @@ module.exports = {
 
         await interaction.reply({ content: 'Configuration saved', ephemeral: true });
     },
+    restricted: true,
 };

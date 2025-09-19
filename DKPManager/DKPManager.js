@@ -9,6 +9,7 @@ module.exports = class DKPManager {
         this.players = db.collection(`players`);
         this.guildOptions = db.collection(`options`);
         this.auctions = db.collection(`auctions`);
+        this.shortAuctions = db.collection(`shortAuctions`);
     }
 
     async createRaid(guild, name, tickDuration = 60000 * 60, dkpsPerTick = 1, eventId = null) {
@@ -365,5 +366,32 @@ module.exports = class DKPManager {
             //add bid
             return this.auctions.updateOne({ _id: auction._id, guild }, { $push: { bids: { player: player.player, amount, bidForMain } } });
         }
+    }
+
+    // Short Auctions Methods
+    async storeShortAuction(guild, auction) {
+        // Convert in-memory auction to database format
+        const auctionData = {
+            guild,
+            item: auction.item,
+            minBid: auction.minBid,
+            numberOfItems: auction.numberOfItems,
+            bids: auction.bids,
+            auctionActive: false,
+            createdAt: new Date().getTime(),
+            auctionEnd: new Date().getTime(),
+            winners: auction.winner ? [auction.winner] : auction.winners,
+        };
+
+        const result = await this.auctions.insertOne(auctionData);
+        return this.auctions.findOne({ _id: result.insertedId });
+    }
+
+    async getAuctionById(guild, auctionId) {
+        const auction = await this.auctions.findOne({ _id: new ObjectId(auctionId), guild });
+        if (!auction) {
+            throw new Error('Auction not found');
+        }
+        return auction;
     }
 };

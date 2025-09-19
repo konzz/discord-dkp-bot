@@ -10,6 +10,7 @@ module.exports = {
         await interaction.deferReply({ ephemeral: true });
         const guild = interaction.guild.id;
         const user = interaction.options.getUser('player') || interaction.user;
+        const entriesPerPage = 30;
 
         const player = await manager.getPlayer(guild, user.id);
         let ticks = 0;
@@ -26,14 +27,14 @@ module.exports = {
                     ticks = 0;
                     return message;
                 }
-                return `- <t:${Math.floor(e.date / 1000)}:d>  **${e.dkp}**${e.raid ? ` *${e.raid.name}* ` : ' '} ${e.item ? `[${e.item.name}](${e.item.url})` : `*${e.comment}*`}`;
+                return `- <t:${Math.floor(e.date / 1000)}:d>  **${e.dkp}**${e.raid ? ` *${e.raid.name}* ` : ' '} ${e.item ? `${e.item.name}` : `*${e.comment}*`}`;
             }).filter(e => e);
-        if (log.length < 40) {
+        if (log.length < entriesPerPage) {
             await interaction.editReply({ content: log.join('\n'), ephemeral: true });
             return;
         }
 
-        const pages = Math.ceil(log.length / 40);
+        const pages = Math.ceil(log.length / entriesPerPage);
         let currentPage = 0;
         const id = uniqid();
         const previousPageButton = new ButtonBuilder().setCustomId(`previousPage_${id}`).setLabel('Previous Page').setDisabled(true).setStyle(ButtonStyle.Primary);
@@ -41,7 +42,7 @@ module.exports = {
         const row = new ActionRowBuilder().addComponents(previousPageButton, nextPageButton);
         const embed = {
             title: `DKP History of ${user.username}`,
-            description: log.slice(currentPage * 40, (currentPage + 1) * 40).join('\n'),
+            description: log.slice(currentPage * entriesPerPage, (currentPage + 1) * entriesPerPage).join('\n'),
             footer: {
                 text: `${currentPage + 1}/${pages}`,
             },
@@ -60,7 +61,7 @@ module.exports = {
             }
             previousPageButton.setDisabled(currentPage === 0);
             nextPageButton.setDisabled(currentPage === pages - 1);
-            embed.description = log.slice(currentPage * 40, (currentPage + 1) * 40).join('\n');
+            embed.description = log.slice(currentPage * entriesPerPage, (currentPage + 1) * entriesPerPage).join('\n');
             embed.footer.text = `${currentPage + 1}/${pages}`;
             await interaction.editReply({ embeds: [embed], components: [row] });
         });

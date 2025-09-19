@@ -23,7 +23,7 @@ module.exports = {
         //send message to log channel telling everyone someone used the command
         const auctionChannel = interaction.guild.channels.cache.get(guildConfig.auctionChannel);
         if (auctionChannel) {
-            await auctionChannel.send({ content: `<@${interaction.user.id}>` + " used `/auctiondetails` to peek under the hood :eyes:" });
+            await auctionChannel.send({ content: `<@${interaction.user.id}>` + " used `/auctiondetails` to peek under the hood :eyes: " + `\`${auction._id}\`` });
         }
 
         let message = `Auction details: ${auction.item.name} - ${auction._id}\n`;

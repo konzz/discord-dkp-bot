@@ -21,9 +21,9 @@ module.exports = {
 
         const auction = await manager.getAuction(guild, auctionid);
         //send message to log channel telling everyone someone used the command
-        const logChannel = interaction.guild.channels.cache.get(guildConfig.logChannel);
-        if (logChannel) {
-            await logChannel.send({ content: `<@${interaction.user.id}>` + " used `/auctiondetails` to peek under the hood :eyes:" });
+        const auctionChannel = interaction.guild.channels.cache.get(guildConfig.auctionChannel);
+        if (auctionChannel) {
+            await auctionChannel.send({ content: `<@${interaction.user.id}>` + " used `/auctiondetails` to peek under the hood :eyes:" });
         }
 
         let message = `Auction details: ${auction.item.name} - ${auction._id}\n`;

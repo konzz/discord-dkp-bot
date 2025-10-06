@@ -31,6 +31,7 @@ module.exports = {
         const guild = interaction.guild;
         const guildConfig = await manager.getGuildOptions(interaction.guild.id) || {};
         const raidChannel = guildConfig.raidChannel;
+        const secondRaidChannel = guildConfig.secondRaidChannel;
         const search = interaction.options.getString('search');
 
         const minBid = interaction.options.getInteger('minbid') || guildConfig.minBid || 0;
@@ -176,7 +177,10 @@ module.exports = {
                 );
                 message = await logger.sendAuctionStartEmbed(guildConfig, startedAuction, minBid, numberOfItems);
 
-                playSound(guild, raidChannel, '../assets/bell.mp3');
+                await playSound(guild, raidChannel, '../assets/bell.mp3');
+                if (secondRaidChannel) {
+                    await playSound(guild, secondRaidChannel, '../assets/bell.mp3');
+                }
             }
         });
     },

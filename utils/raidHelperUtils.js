@@ -24,7 +24,7 @@ async function processRaidHelperEventDKP({
     logger,
     logChannel
 }) {
-    const eventUrl = `https://raid-helper.dev/api/v2/events/${eventId}`;
+    const eventUrl = `https://raid-helper.dev/api/v4/events/${eventId}`;
     const eventData = await fetch(eventUrl, {
         method: 'GET',
         headers: {

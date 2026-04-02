@@ -18,7 +18,7 @@ module.exports = {
         let eventId = null;
 
         if (guildConfig.raidHelperAPIKey) {
-            const guildRaidHelpetEvents = await fetch(`https://raid-helper.dev/api/v3/servers/${guild}/events`, {
+            const guildRaidHelpetEvents = await fetch(`https://raid-helper.dev/api/v4/servers/${guild}/events`, {
                 headers: {
                     'Authorization': guildConfig.raidHelperAPIKey,
                     'StartTimeFilter': (Date.now() - 10 * 60000) / 1000,

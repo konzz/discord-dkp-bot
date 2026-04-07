@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { processRaidHelperEventDKP } = require('../utils/raidHelperUtils');
+const log = require('../debugger.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -36,6 +37,10 @@ module.exports = {
             });
         } catch (error) {
             console.error('Error processing RaidHelper event DKP:', error);
+
+            if (process.env.LOG_LEVEL === 'DEBUG') {
+                log('Error processing RaidHelper event DKP:', error);
+            }
             await interaction.editReply({
                 content: `:prohibited: ${error.message}`,
                 ephemeral: true

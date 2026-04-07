@@ -7,13 +7,14 @@ const Worker = require('./worker/Worker.js');
 const Logger = require('./utils/Logger');
 const Auctioner = require('./Auctioner/Auctioner.js');
 
-
 const dbClient = require('./db.js');
 try {
 	dbClient.connect();
 } catch (error) {
 	console.error(error);
 }
+
+const log = require('./debugger.js');
 
 const dkpManager = new DKPManager(dbClient);
 const token = process.env.DISCORD_TOKEN;
@@ -69,6 +70,7 @@ client.on(Events.InteractionCreate, async interaction => {
 		await command.execute(interaction, dkpManager, logger);
 	} catch (error) {
 		console.error(error);
+		log(`Error executing command: ${interaction.commandName}`, error);
 		if (!fs.existsSync('error.log')) {
 			fs.writeFileSync('error.log', '');
 		}
